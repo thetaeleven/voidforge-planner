@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voidforge Planner — WoW Midnight Season 1</title>
+  <meta name="description" content="Plan your Nebulous Voidcore bonus rolls for World of Warcraft Midnight Season 1. Filter loot by class and spec across raids, Mythic+, Delves, and Prey Hunts.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>">
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-page:        #0d0d14;
+      --bg-surface:     #13131f;
+      --bg-raised:      #1a1a2a;
+      --bg-hover:       #1f1f32;
+      --border:         rgba(139,120,255,0.15);
+      --border-mid:     rgba(139,120,255,0.28);
+      --border-strong:  rgba(139,120,255,0.5);
+      --text-primary:   #e8e4ff;
+      --text-secondary: #9b94c4;
+      --text-muted:     #5c5680;
+      --purple:         #7f6fff;
+      --purple-dim:     #3d3880;
+      --purple-glow:    rgba(127,111,255,0.18);
+      --amber:          #d4963a;
+      --amber-dim:      #6b4a18;
+      --teal:           #3cbf90;
+      --teal-dim:       #1a5c44;
+      --coral:          #d46060;
+      --coral-dim:      #5c2828;
+      --blue:           #5a9fff;
+      --blue-dim:       #1e3d6b;
+      --green:          #5abf72;
+      --green-dim:      #1e5230;
+      --radius-sm:      6px;
+      --radius-md:      10px;
+      --radius-lg:      14px;
+      --font:           -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Site header ── */
+    .site-header {
+      background: linear-gradient(180deg, #0a0a15 0%, var(--bg-page) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 0 1rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .site-header::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 180px;
+      background: radial-gradient(ellipse, rgba(127,111,255,0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .site-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      position: relative;
+    }
+    .site-header h1 span { color: var(--purple); }
+    .site-header p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+      position: relative;
+    }
+    .season-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--purple-glow);
+      border: 1px solid var(--border-mid);
+      color: var(--purple);
+      padding: 3px 10px;
+      border-radius: 99px;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 1.25rem 3rem;
+    }
+
+    /* ── Section labels ── */
+    .section-label {
+      font-size: 0.675rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+
+    /* ── Tip box ── */
+    .tip-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--purple);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      padding: 0.75rem 1rem;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin-bottom: 1.75rem;
+    }
+    .tip-box strong { color: var(--text-primary); font-weight: 500; }
+
+    /* ── Cards / surfaces ── */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.125rem;
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── Class picker ── */
+    .class-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+      gap: 6px;
+      margin-bottom: 1rem;
+    }
+    .class-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 9px 4px 7px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-raised);
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+      color: var(--text-secondary);
+    }
+    .class-btn:hover { border-color: var(--border-mid); background: var(--bg-hover); }
+    .class-btn.active { border-width: 1.5px; }
+    .class-icon { font-size: 1.25rem; line-height: 1; }
+    .class-name { font-size: 0.68rem; text-align: center; line-height: 1.3; }
+    .class-btn.active .class-name { font-weight: 600; color: var(--text-primary); }
+
+    .spec-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 0.75rem; min-height: 32px; }
+    .spec-btn {
+      padding: 5px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-raised);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+      font-family: var(--font);
+    }
+    .spec-btn:hover { border-color: var(--border-mid); }
+    .spec-btn.active { border-width: 1.5px; font-weight: 600; color: var(--text-primary); }
+    .spec-role-tag {
+      font-size: 0.65rem;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 5px;
+      font-weight: 600;
+    }
+    .tag-tank { background: var(--blue-dim); color: var(--blue); }
+    .tag-heal { background: var(--green-dim); color: var(--green); }
+    .tag-dps  { background: var(--coral-dim); color: var(--coral); }
+
+    .char-summary {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+      min-height: 1.5rem;
+    }
+    .char-summary strong { color: var(--text-primary); font-weight: 500; }
+
+    /* ── Cores bar ── */
+    .cores-input-row { margin-bottom: 0.75rem; }
+    .cores-input-row label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+    input[type=number] {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 1.1rem;
+      padding: 6px 10px;
+      width: 90px;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+    input[type=number]:focus { border-color: var(--purple); }
+    input[type=number]::-webkit-inner-spin-button { opacity: 0.4; }
+
+    .cores-summary {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+      margin: 0.75rem 0 0.5rem;
+    }
+    .summary-block .val { font-size: 1.5rem; font-weight: 600; }
+    .summary-block .lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .val-total  { color: var(--text-primary); }
+    .val-remain { color: var(--teal); }
+    .sum-divider { width: 1px; height: 36px; background: var(--border); }
+
+    .cores-display { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 0.75rem; }
+    .core-orb {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 600;
+    }
+    .core-orb.avail { border: 1.5px solid var(--purple-dim); background: rgba(127,111,255,0.1); color: var(--purple); }
+    .core-orb.used  { background: var(--purple-dim); border: 1.5px solid var(--purple); color: #c8c0ff; }
+
+    /* ── Activity tabs ── */
+    .act-tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .act-tab {
+      padding: 7px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-raised);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.12s;
+      font-family: var(--font);
+    }
+    .act-tab:hover { border-color: var(--border-mid); color: var(--text-primary); }
+    .act-tab.active-raid  { background: rgba(212,96,96,0.12);  border-color: var(--coral);  color: var(--coral); }
+    .act-tab.active-mp    { background: rgba(90,159,255,0.12); border-color: var(--blue);   color: var(--blue); }
+    .act-tab.active-delve { background: rgba(60,191,144,0.12); border-color: var(--teal);   color: var(--teal); }
+    .act-tab.active-prey  { background: var(--purple-glow);    border-color: var(--purple); color: var(--purple); }
+
+    /* ── Activity sub-cards ── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 8px;
+    }
+    .content-card {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 11px 12px 10px;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .content-card:hover { background: var(--bg-hover); border-color: var(--border-mid); }
+    .content-card.selected { border-width: 1.5px; }
+    .content-card .cname   { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+    .content-card .cdetail { font-size: 0.7rem; color: var(--text-muted); line-height: 1.5; }
+    .content-card .ccost   { position: absolute; top: 9px; right: 10px; font-size: 0.7rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; }
+    .track-badge { display: inline-block; font-size: 0.65rem; padding: 2px 7px; border-radius: 99px; margin-top: 5px; font-weight: 600; }
+
+    .raid-card  .ccost { background: rgba(212,96,96,0.15);  color: var(--coral); }
+    .raid-card.selected { border-color: var(--coral); background: rgba(212,96,96,0.07); }
+    .mp-card    .ccost { background: rgba(90,159,255,0.15); color: var(--blue); }
+    .mp-card.selected   { border-color: var(--blue);  background: rgba(90,159,255,0.07); }
+    .delve-card .ccost { background: rgba(60,191,144,0.15); color: var(--teal); }
+    .delve-card.selected{ border-color: var(--teal);  background: rgba(60,191,144,0.07); }
+    .prey-card  .ccost { background: var(--purple-glow); color: var(--purple); }
+    .prey-card.selected { border-color: var(--purple); background: var(--purple-glow); }
+
+    .track-champ { background: rgba(90,159,255,0.12);  color: var(--blue); }
+    .track-hero  { background: rgba(90,191,114,0.12);  color: var(--green); }
+    .track-myth  { background: rgba(127,111,255,0.15); color: var(--purple); }
+    .track-vet   { background: rgba(155,148,196,0.12); color: var(--text-secondary); }
+
+    /* ── Loot pool ── */
+    .pool-header { display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; flex-wrap: wrap; }
+    .pool-title  { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+    .obtained-badge { font-size: 0.7rem; color: var(--green); background: var(--green-dim); padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+    .filtered-badge { font-size: 0.7rem; color: var(--purple); background: var(--purple-glow); padding: 2px 8px; border-radius: 99px; font-weight: 600; border: 1px solid var(--border); }
+
+    .loot-pool {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 0.875rem 1rem;
+      margin-bottom: 1.5rem;
+      min-height: 80px;
+    }
+    .loot-pool-empty {
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 60px;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+      border-radius: 4px;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-row:hover .item-name:not(.obtained-name) { color: var(--purple); }
+
+    .item-slot {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      min-width: 64px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .item-name { font-size: 0.8125rem; color: var(--text-primary); flex: 1; transition: color 0.1s; }
+    .obtained-name { text-decoration: line-through; color: var(--text-muted) !important; }
+
+    .item-status { font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; font-weight: 600; white-space: nowrap; }
+    .status-obtained { background: var(--green-dim);  color: var(--green); }
+    .status-priority { background: var(--amber-dim);  color: var(--amber); }
+
+    .armor-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; color: var(--text-muted); border: 1px solid var(--border); white-space: nowrap; }
+
+    /* slot colours */
+    .slot-trinket  { background: rgba(212,150,58,0.15);  color: var(--amber); }
+    .slot-ring     { background: rgba(127,111,255,0.15); color: var(--purple); }
+    .slot-weapon   { background: rgba(212,96,96,0.15);   color: var(--coral); }
+    .slot-neck     { background: rgba(60,191,144,0.15);  color: var(--teal); }
+    .slot-back     { background: rgba(60,191,144,0.15);  color: var(--teal); }
+    .slot-armor    { background: rgba(90,159,255,0.12);  color: var(--blue); }
+    .slot-default  { background: rgba(155,148,196,0.1);  color: var(--text-secondary); }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .roll-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 22px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--purple);
+      background: rgba(127,111,255,0.1);
+      color: var(--purple);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s;
+      font-family: var(--font);
+    }
+    .roll-btn:hover:not(:disabled) { background: rgba(127,111,255,0.2); }
+    .roll-btn:disabled { opacity: 0.35; cursor: default; }
+    .roll-btn:active:not(:disabled) { transform: scale(0.98); }
+    .orb-icon { width: 14px; height: 14px; border-radius: 50%; background: var(--purple); flex-shrink: 0; }
+
+    .reset-btn {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      font-family: var(--font);
+    }
+    .reset-btn:hover { color: var(--text-secondary); }
+
+    /* ── History ── */
+    .history-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .history-row:last-child { border-bottom: none; }
+    .history-idx { color: var(--text-muted); min-width: 20px; }
+    .history-act { flex: 1; color: var(--text-primary); }
+    .history-cost { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--purple-glow); color: var(--purple); border: 1px solid var(--border); }
+
+    /* ── Footer ── */
+    .site-footer {
+      text-align: center;
+      padding: 1.5rem 0 2rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+    .site-footer a { color: var(--text-muted); }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .site-header h1 { font-size: 1.4rem; }
+      .class-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+      .content-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="season-badge">Midnight Season 1 · Patch 12.0.5</div>
+    <h1>🔮 <span>Voidforge</span> Planner</h1>
+    <p>Nebulous Voidcore bonus roll tracker for WoW Midnight Season 1</p>
+  </header>
+
+  <main class="container">
+
+    <div class="tip-box">
+      Raid bosses cost <strong>2 cores</strong>. All other activities cost <strong>1 core</strong>. Only <strong>Bountiful Delves</strong> and <strong>Nightmare Prey Hunts</strong> are eligible for Voidcore rolls — these have separate loot pools. Extra cores can be purchased from Vaultkeeper Elysa with Thalassian Tokens of Merit.
+    </div>
+
+    <!-- ── Character ── -->
+    <div class="section-label">Your character</div>
+    <div class="card">
+      <div class="class-grid" id="classGrid"></div>
+      <div class="spec-row" id="specRow"></div>
+      <div class="char-summary" id="charSummary">No class selected — loot pool will show all items.</div>
+    </div>
+
+    <!-- ── Voidcores ── -->
+    <div class="section-label">Nebulous Voidcores available</div>
+    <div class="card">
+      <div class="cores-input-row">
+        <label for="coreInput">How many Voidcores do you have?</label>
+        <input type="number" id="coreInput" min="0" max="99" value="2">
+      </div>
+      <div class="cores-summary">
+        <div class="summary-block"><div class="val val-total" id="totalVal">2</div><div class="lbl">Total</div></div>
+        <div class="sum-divider"></div>
+        <div class="summary-block"><div class="val val-remain" id="remainVal">2</div><div class="lbl">Remaining</div></div>
+      </div>
+      <div class="cores-display" id="coresDisplay"></div>
+    </div>
+
+    <!-- ── Activity ── -->
+    <div class="section-label">Choose activity</div>
+    <div class="act-tabs">
+      <button class="act-tab" data-group="raid"  onclick="switchGroup('raid')">Raid</button>
+      <button class="act-tab" data-group="mp"    onclick="switchGroup('mp')">Mythic+</button>
+      <button class="act-tab" data-group="delve" onclick="switchGroup('delve')">Bountiful Delve</button>
+      <button class="act-tab" data-group="prey"  onclick="switchGroup('prey')">Prey Hunt</button>
+    </div>
+    <div class="card" id="actPanel" style="min-height:60px;"></div>
+
+    <!-- ── Loot pool ── -->
+    <div class="pool-header">
+      <span class="pool-title" id="poolTitle">Select an activity to see the loot pool</span>
+      <span class="obtained-badge" id="obtainedBadge" style="display:none"></span>
+      <span class="filtered-badge" id="filteredBadge" style="display:none"></span>
+    </div>
+    <div class="loot-pool" id="lootPool">
+      <div class="loot-pool-empty">← Pick an activity above to plan your roll</div>
+    </div>
+
+    <div class="btn-row" style="margin-bottom:2rem;">
+      <button class="roll-btn" id="rollBtn" disabled onclick="spendCore()">
+        <span class="orb-icon"></span> Spend Voidcore
+      </button>
+      <button class="reset-btn" onclick="resetAll()">Reset all</button>
+    </div>
+
+    <div id="historyWrap" style="display:none;">
+      <div class="section-label" style="margin-bottom:0.5rem;">Rolls this session</div>
+      <div class="card" id="historyList"></div>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    Voidforge Planner · WoW Midnight Season 1 · Loot tables are placeholder pending full datamining
+  </footer>
+
+<script>
+// ── Data ────────────────────────────────────────────────────────
+
+const CLASSES = [
+  {name:"Death Knight",  icon:"💀", activeBorder:"#d46060", activeBg:"rgba(212,96,96,0.1)",
+   specs:[{name:"Blood",role:"tank"},{name:"Frost",role:"dps"},{name:"Unholy",role:"dps"}], armor:"plate"},
+  {name:"Demon Hunter",  icon:"👁",  activeBorder:"#b060d4", activeBg:"rgba(176,96,212,0.1)",
+   specs:[{name:"Havoc",role:"dps"},{name:"Vengeance",role:"tank"},{name:"Devourer",role:"dps"}], armor:"leather"},
+  {name:"Druid",         icon:"🌙", activeBorder:"#d4963a", activeBg:"rgba(212,150,58,0.1)",
+   specs:[{name:"Balance",role:"dps"},{name:"Feral",role:"dps"},{name:"Guardian",role:"tank"},{name:"Restoration",role:"heal"}], armor:"leather"},
+  {name:"Evoker",        icon:"🐉", activeBorder:"#3cbf90", activeBg:"rgba(60,191,144,0.1)",
+   specs:[{name:"Devastation",role:"dps"},{name:"Preservation",role:"heal"},{name:"Augmentation",role:"dps"}], armor:"mail"},
+  {name:"Hunter",        icon:"🏹", activeBorder:"#90c43c", activeBg:"rgba(144,196,60,0.1)",
+   specs:[{name:"Beast Mastery",role:"dps"},{name:"Marksmanship",role:"dps"},{name:"Survival",role:"dps"}], armor:"mail"},
+  {name:"Mage",          icon:"🔮", activeBorder:"#5a9fff", activeBg:"rgba(90,159,255,0.1)",
+   specs:[{name:"Arcane",role:"dps"},{name:"Fire",role:"dps"},{name:"Frost",role:"dps"}], armor:"cloth"},
+  {name:"Monk",          icon:"🥋", activeBorder:"#3cbf90", activeBg:"rgba(60,191,144,0.1)",
+   specs:[{name:"Brewmaster",role:"tank"},{name:"Mistweaver",role:"heal"},{name:"Windwalker",role:"dps"}], armor:"leather"},
+  {name:"Paladin",       icon:"⚔️", activeBorder:"#d460a0", activeBg:"rgba(212,96,160,0.1)",
+   specs:[{name:"Holy",role:"heal"},{name:"Protection",role:"tank"},{name:"Retribution",role:"dps"}], armor:"plate"},
+  {name:"Priest",        icon:"✨", activeBorder:"#9b94c4", activeBg:"rgba(155,148,196,0.1)",
+   specs:[{name:"Discipline",role:"heal"},{name:"Holy",role:"heal"},{name:"Shadow",role:"dps"}], armor:"cloth"},
+  {name:"Rogue",         icon:"🗡️", activeBorder:"#d4c03a", activeBg:"rgba(212,192,58,0.1)",
+   specs:[{name:"Assassination",role:"dps"},{name:"Outlaw",role:"dps"},{name:"Subtlety",role:"dps"}], armor:"leather"},
+  {name:"Shaman",        icon:"⚡", activeBorder:"#5a9fff", activeBg:"rgba(90,159,255,0.1)",
+   specs:[{name:"Elemental",role:"dps"},{name:"Enhancement",role:"dps"},{name:"Restoration",role:"heal"}], armor:"mail"},
+  {name:"Warlock",       icon:"🔥", activeBorder:"#7f6fff", activeBg:"rgba(127,111,255,0.12)",
+   specs:[{name:"Affliction",role:"dps"},{name:"Demonology",role:"dps"},{name:"Destruction",role:"dps"}], armor:"cloth"},
+  {name:"Warrior",       icon:"🛡️", activeBorder:"#d4963a", activeBg:"rgba(212,150,58,0.1)",
+   specs:[{name:"Arms",role:"dps"},{name:"Fury",role:"dps"},{name:"Protection",role:"tank"}], armor:"plate"},
+];
+
+const ACTIVITY_GROUPS = {
+  raid: [
+    {key:"Voidspire (Normal)", label:"Normal",  cost:2, cardClass:"raid-card",  track:"track-champ", trackLabel:"Champion track", detail:"Bosses 1–6, ilvl 246–256"},
+    {key:"Voidspire (Heroic)", label:"Heroic",  cost:2, cardClass:"raid-card",  track:"track-hero",  trackLabel:"Hero track",     detail:"Bosses 1–6, ilvl 259–269"},
+    {key:"Voidspire (Mythic)", label:"Mythic",  cost:2, cardClass:"raid-card",  track:"track-myth",  trackLabel:"Myth track",     detail:"Bosses 1–6, ilvl 272–282"},
+  ],
+  mp: [
+    {key:"Mythic 0",    label:"Mythic 0",  cost:1, cardClass:"mp-card", track:"track-champ", trackLabel:"Champion vault", detail:"End-of-run 246, vault 256"},
+    {key:"M+ +2 to +5", label:"+2 to +5", cost:1, cardClass:"mp-card", track:"track-hero",  trackLabel:"Hero vault",     detail:"End-of-run 250–256, vault 259–263"},
+    {key:"M+ +6 to +9", label:"+6 to +9", cost:1, cardClass:"mp-card", track:"track-hero",  trackLabel:"Hero vault",     detail:"End-of-run 259–263, vault 266–269"},
+    {key:"M+ +10+",     label:"+10+",     cost:1, cardClass:"mp-card", track:"track-myth",  trackLabel:"Myth vault",     detail:"End-of-run 266 (Hero 3/6), vault 272"},
+  ],
+  delve: [
+    {key:"Bountiful Delve T1–4", label:"Tier 1–4", cost:1, cardClass:"delve-card", track:"track-vet",   trackLabel:"Veteran track",  detail:"End-of-run 220–230, vault 233–243"},
+    {key:"Bountiful Delve T5–6", label:"Tier 5–6", cost:1, cardClass:"delve-card", track:"track-vet",   trackLabel:"Veteran track",  detail:"End-of-run 233–237, vault 246–253"},
+    {key:"Bountiful Delve T7",   label:"Tier 7",   cost:1, cardClass:"delve-card", track:"track-champ", trackLabel:"Champion vault", detail:"End-of-run 246, vault 256"},
+    {key:"Bountiful Delve T8",   label:"Tier 8",   cost:1, cardClass:"delve-card", track:"track-hero",  trackLabel:"Hero vault",     detail:"End-of-run 250, vault 259 (cap)"},
+  ],
+  prey: [
+    {key:"Prey Hunt (Nightmare)", label:"Nightmare", cost:1, cardClass:"prey-card", track:"track-hero", trackLabel:"Hero vault", detail:"End-of-run 246, vault 259 · Voidcore eligible"},
+  ],
+};
+
+const TAB_ACTIVE = {raid:"active-raid", mp:"active-mp", delve:"active-delve", prey:"active-prey"};
+
+function slotClass(slot) {
+  if(slot==='Trinket') return 'slot-trinket';
+  if(slot==='Ring')    return 'slot-ring';
+  if(slot==='Weapon')  return 'slot-weapon';
+  if(slot==='Neck'||slot==='Cloak'||slot==='Back') return 'slot-neck';
+  const armorSlots=['Head','Chest','Shoulder','Hands','Legs','Feet','Waist','Wrist'];
+  if(armorSlots.includes(slot)) return 'slot-armor';
+  return 'slot-default';
+}
+
+const LOOT = {
+  "Voidspire (Normal)": [
+    {slot:"Trinket",  name:"Prism of Voided Sight",     armor:"any",     roles:"all",          priority:true},
+    {slot:"Trinket",  name:"Shard of Collapsed Stars",  armor:"any",     roles:"all",          priority:true},
+    {slot:"Ring",     name:"Nexus-Touched Band",        armor:"any",     roles:"all",          priority:false},
+    {slot:"Neck",     name:"Aethermancer's Chain",      armor:"any",     roles:"all",          priority:false},
+    {slot:"Weapon",   name:"Darkwhisper Wand",          armor:"any",     roles:["dps","heal"], priority:false},
+    {slot:"Back",     name:"Veilwoven Drape",           armor:"any",     roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidwoven Hood",            armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidshifter's Helm",        armor:"leather", roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidmesh Headguard",        armor:"mail",    roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidplate Greathelm",       armor:"plate",   roles:"all",          priority:false},
+    {slot:"Chest",    name:"Starless Vestments",        armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Chest",    name:"Nightbound Tunic",          armor:"leather", roles:"all",          priority:false},
+    {slot:"Chest",    name:"Voidmesh Hauberk",          armor:"mail",    roles:"all",          priority:false},
+    {slot:"Chest",    name:"Mantle of Shattered Eons",  armor:"plate",   roles:"all",          priority:false},
+    {slot:"Legs",     name:"Voidweave Leggings",        armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Legs",     name:"Voidleather Breeches",      armor:"leather", roles:"all",          priority:false},
+    {slot:"Legs",     name:"Voidmail Legguards",        armor:"mail",    roles:"all",          priority:false},
+    {slot:"Legs",     name:"Voidplate Cuisses",         armor:"plate",   roles:"all",          priority:false},
+  ],
+  "Voidspire (Heroic)": [
+    {slot:"Trinket",  name:"Prism of Voided Sight",     armor:"any",     roles:"all",          priority:true},
+    {slot:"Trinket",  name:"Shard of Collapsed Stars",  armor:"any",     roles:"all",          priority:true},
+    {slot:"Ring",     name:"Nexus-Touched Band",        armor:"any",     roles:"all",          priority:true},
+    {slot:"Neck",     name:"Aethermancer's Chain",      armor:"any",     roles:"all",          priority:false},
+    {slot:"Weapon",   name:"Darkwhisper Wand",          armor:"any",     roles:["dps","heal"], priority:false},
+    {slot:"Back",     name:"Veilwoven Drape",           armor:"any",     roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidcrown of the Domanaar", armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidshifter's Crown",       armor:"leather", roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidmesh Crown",            armor:"mail",    roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidplate Crown",           armor:"plate",   roles:"all",          priority:false},
+    {slot:"Chest",    name:"Starless Vestments",        armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Chest",    name:"Nightbound Tunic",          armor:"leather", roles:"all",          priority:false},
+    {slot:"Chest",    name:"Voidmesh Hauberk",          armor:"mail",    roles:"all",          priority:false},
+    {slot:"Chest",    name:"Mantle of Shattered Eons",  armor:"plate",   roles:"all",          priority:false},
+    {slot:"Shoulder", name:"Spaulders of the Void",     armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Shoulder", name:"Voidshifter's Mantle",      armor:"leather", roles:"all",          priority:false},
+    {slot:"Shoulder", name:"Voidmesh Shoulderguards",   armor:"mail",    roles:"all",          priority:false},
+    {slot:"Shoulder", name:"Voidplate Pauldrons",       armor:"plate",   roles:"all",          priority:false},
+  ],
+  "Voidspire (Mythic)": [
+    {slot:"Trinket",  name:"Prism of Voided Sight",     armor:"any",     roles:"all",          priority:true},
+    {slot:"Trinket",  name:"Shard of Collapsed Stars",  armor:"any",     roles:"all",          priority:true},
+    {slot:"Ring",     name:"Nexus-Touched Band",        armor:"any",     roles:"all",          priority:true},
+    {slot:"Neck",     name:"Aethermancer's Chain",      armor:"any",     roles:"all",          priority:false},
+    {slot:"Weapon",   name:"Darkwhisper Wand",          armor:"any",     roles:["dps","heal"], priority:true},
+    {slot:"Head",     name:"Voidcrown of the Domanaar", armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidshifter's Crown",       armor:"leather", roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidmesh Crown",            armor:"mail",    roles:"all",          priority:false},
+    {slot:"Head",     name:"Voidplate Crown",           armor:"plate",   roles:"all",          priority:false},
+    {slot:"Chest",    name:"Starless Vestments",        armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Chest",    name:"Nightbound Tunic",          armor:"leather", roles:"all",          priority:false},
+    {slot:"Chest",    name:"Voidmesh Hauberk",          armor:"mail",    roles:"all",          priority:false},
+    {slot:"Chest",    name:"Mantle of Shattered Eons",  armor:"plate",   roles:"all",          priority:false},
+  ],
+  "Mythic 0": [
+    {slot:"Trinket",  name:"Arcanist's Prism",          armor:"any",     roles:["dps","heal"], priority:false},
+    {slot:"Ring",     name:"Sunwhisper Loop",           armor:"any",     roles:"all",          priority:false},
+    {slot:"Neck",     name:"Frostbound Pendant",        armor:"any",     roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidwoven Gloves",          armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidshift Grips",           armor:"leather", roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidmesh Gauntlets",        armor:"mail",    roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidplate Gauntlets",       armor:"plate",   roles:"all",          priority:false},
+  ],
+  "M+ +2 to +5": [
+    {slot:"Trinket",  name:"Arcanist's Prism",          armor:"any",     roles:["dps","heal"], priority:true},
+    {slot:"Ring",     name:"Sunwhisper Loop",           armor:"any",     roles:"all",          priority:false},
+    {slot:"Neck",     name:"Frostbound Pendant",        armor:"any",     roles:"all",          priority:false},
+    {slot:"Back",     name:"Shroud of the Void",        armor:"any",     roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidwoven Gloves",          armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidshift Grips",           armor:"leather", roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidmesh Gauntlets",        armor:"mail",    roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidplate Gauntlets",       armor:"plate",   roles:"all",          priority:false},
+  ],
+  "M+ +6 to +9": [
+    {slot:"Trinket",  name:"Galvanized Void Coil",      armor:"any",     roles:"all",          priority:true},
+    {slot:"Trinket",  name:"Arcanist's Prism",          armor:"any",     roles:["dps","heal"], priority:true},
+    {slot:"Ring",     name:"Sunwhisper Loop",           armor:"any",     roles:"all",          priority:true},
+    {slot:"Neck",     name:"Frostbound Pendant",        armor:"any",     roles:"all",          priority:false},
+    {slot:"Weapon",   name:"Skyreach Glaive",           armor:"any",     roles:["dps","tank"], priority:false},
+    {slot:"Back",     name:"Shroud of the Void",        armor:"any",     roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidwoven Sandals",         armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidshift Boots",           armor:"leather", roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidmesh Sabatons",         armor:"mail",    roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidplate Sabatons",        armor:"plate",   roles:"all",          priority:false},
+  ],
+  "M+ +10+": [
+    {slot:"Trinket",  name:"Galvanized Void Coil",      armor:"any",     roles:"all",          priority:true},
+    {slot:"Trinket",  name:"Arcanist's Prism",          armor:"any",     roles:["dps","heal"], priority:true},
+    {slot:"Ring",     name:"Sunwhisper Loop",           armor:"any",     roles:"all",          priority:true},
+    {slot:"Neck",     name:"Frostbound Pendant",        armor:"any",     roles:"all",          priority:false},
+    {slot:"Weapon",   name:"Spire-Touched Blade",       armor:"any",     roles:["dps","tank"], priority:false},
+    {slot:"Back",     name:"Shroud of the Void",        armor:"any",     roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidwoven Gloves",          armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidshift Grips",           armor:"leather", roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidmesh Gauntlets",        armor:"mail",    roles:"all",          priority:false},
+    {slot:"Hands",    name:"Voidplate Gauntlets",       armor:"plate",   roles:"all",          priority:false},
+  ],
+  "Bountiful Delve T1–4": [
+    {slot:"Ring",     name:"Voidstone Signet",          armor:"any",     roles:"all",          priority:false},
+    {slot:"Neck",     name:"Lightrift Amulet",          armor:"any",     roles:"all",          priority:false},
+    {slot:"Waist",    name:"Voidweave Cord",            armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Waist",    name:"Voidshift Belt",            armor:"leather", roles:"all",          priority:false},
+    {slot:"Waist",    name:"Voidmesh Girdle",           armor:"mail",    roles:"all",          priority:false},
+    {slot:"Waist",    name:"Voidplate Girdle",          armor:"plate",   roles:"all",          priority:false},
+    {slot:"Wrist",    name:"Voidweave Cuffs",           armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Wrist",    name:"Voidshift Bracers",         armor:"leather", roles:"all",          priority:false},
+    {slot:"Wrist",    name:"Voidmesh Bracers",          armor:"mail",    roles:"all",          priority:false},
+    {slot:"Wrist",    name:"Voidplate Bracers",         armor:"plate",   roles:"all",          priority:false},
+  ],
+  "Bountiful Delve T5–6": [
+    {slot:"Trinket",  name:"Marl-Encrusted Idol",       armor:"any",     roles:"all",          priority:false},
+    {slot:"Ring",     name:"Voidstone Signet",          armor:"any",     roles:"all",          priority:false},
+    {slot:"Neck",     name:"Lightrift Amulet",          armor:"any",     roles:"all",          priority:false},
+    {slot:"Back",     name:"Dawnwoven Cloak",           armor:"any",     roles:"all",          priority:false},
+    {slot:"Waist",    name:"Voidweave Cord",            armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Waist",    name:"Voidshift Belt",            armor:"leather", roles:"all",          priority:false},
+    {slot:"Waist",    name:"Voidmesh Girdle",           armor:"mail",    roles:"all",          priority:false},
+    {slot:"Waist",    name:"Voidplate Girdle",          armor:"plate",   roles:"all",          priority:false},
+  ],
+  "Bountiful Delve T7": [
+    {slot:"Trinket",  name:"Marl-Encrusted Idol",       armor:"any",     roles:"all",          priority:true},
+    {slot:"Ring",     name:"Voidstone Signet",          armor:"any",     roles:"all",          priority:false},
+    {slot:"Neck",     name:"Lightrift Amulet",          armor:"any",     roles:"all",          priority:false},
+    {slot:"Back",     name:"Dawnwoven Cloak",           armor:"any",     roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidwoven Sandals",         armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidshift Boots",           armor:"leather", roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidmesh Sabatons",         armor:"mail",    roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidplate Sabatons",        armor:"plate",   roles:"all",          priority:false},
+  ],
+  "Bountiful Delve T8": [
+    {slot:"Trinket",  name:"Marl-Encrusted Idol",       armor:"any",     roles:"all",          priority:true},
+    {slot:"Ring",     name:"Voidstone Signet",          armor:"any",     roles:"all",          priority:true},
+    {slot:"Neck",     name:"Lightrift Amulet",          armor:"any",     roles:"all",          priority:false},
+    {slot:"Back",     name:"Dawnwoven Cloak",           armor:"any",     roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidwoven Sandals",         armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidshift Boots",           armor:"leather", roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidmesh Sabatons",         armor:"mail",    roles:"all",          priority:false},
+    {slot:"Feet",     name:"Voidplate Sabatons",        armor:"plate",   roles:"all",          priority:false},
+  ],
+  "Prey Hunt (Nightmare)": [
+    {slot:"Trinket",  name:"Preymark Sigil",            armor:"any",     roles:"all",          priority:true},
+    {slot:"Ring",     name:"Hunter's Voidcoil Band",    armor:"any",     roles:"all",          priority:false},
+    {slot:"Neck",     name:"Cord of the Hunted",        armor:"any",     roles:"all",          priority:false},
+    {slot:"Back",     name:"Nightmare-Stalker's Cloak", armor:"any",     roles:"all",          priority:false},
+    {slot:"Weapon",   name:"Shadowfang Glaive",         armor:"any",     roles:["dps","tank"], priority:false},
+    {slot:"Shoulder", name:"Predator's Voidmantle",     armor:"cloth",   roles:"all",          priority:false},
+    {slot:"Shoulder", name:"Predator's Leathermantle",  armor:"leather", roles:"all",          priority:false},
+    {slot:"Shoulder", name:"Predator's Chainmantle",    armor:"mail",    roles:"all",          priority:false},
+    {slot:"Shoulder", name:"Predator's Platemant",      armor:"plate",   roles:"all",          priority:false},
+  ],
+};
+
+// ── State ────────────────────────────────────────────────────────
+let totalCores=2, usedCores=0, selectedActivity=null, obtained={}, rolls=[];
+let selectedClass=null, selectedSpec=null, activeGroup=null;
+
+// ── Class grid ───────────────────────────────────────────────────
+const classGrid = document.getElementById('classGrid');
+CLASSES.forEach((cls, ci) => {
+  const btn = document.createElement('button');
+  btn.className = 'class-btn';
+  btn.innerHTML = `<span class="class-icon">${cls.icon}</span><span class="class-name">${cls.name}</span>`;
+  btn.addEventListener('click', () => pickClass(ci, btn, cls));
+  classGrid.appendChild(btn);
+});
+
+function pickClass(ci, btn, cls) {
+  document.querySelectorAll('.class-btn').forEach((b,i) => {
+    b.classList.toggle('active', i===ci);
+    b.style.borderColor = i===ci ? cls.activeBorder : '';
+    b.style.background  = i===ci ? cls.activeBg : '';
+  });
+  selectedClass = cls; selectedSpec = null;
+  buildSpecRow(cls); updateCharSummary();
+  if (selectedActivity) renderLootPool(selectedActivity);
+}
+
+function buildSpecRow(cls) {
+  const row = document.getElementById('specRow'); row.innerHTML = '';
+  cls.specs.forEach(spec => {
+    const btn = document.createElement('button');
+    btn.className = 'spec-btn';
+    btn.style.borderColor = cls.activeBorder;
+    btn.innerHTML = `${spec.name}<span class="spec-role-tag tag-${spec.role}">${{tank:'Tank',heal:'Healer',dps:'DPS'}[spec.role]}</span>`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.spec-btn').forEach(b => { b.classList.remove('active'); b.style.background=''; });
+      btn.classList.add('active'); btn.style.background = cls.activeBg;
+      selectedSpec = spec; updateCharSummary();
+      if (selectedActivity) renderLootPool(selectedActivity);
+    });
+    row.appendChild(btn);
+  });
+}
+
+function updateCharSummary() {
+  const el = document.getElementById('charSummary');
+  if (!selectedClass) { el.innerHTML = 'No class selected — loot pool will show all items.'; return; }
+  const a = selectedClass.armor, al = a[0].toUpperCase()+a.slice(1);
+  if (!selectedSpec) el.innerHTML = `<strong>${selectedClass.name}</strong> — ${al} armor. Select a spec to also filter by role.`;
+  else el.innerHTML = `<strong>${selectedClass.name}</strong> · <strong>${selectedSpec.name}</strong> · ${al} armor · ${{tank:'Tank',heal:'Healer',dps:'DPS'}[selectedSpec.role]}`;
+}
+
+function itemMatchesChar(item) {
+  if (!selectedClass) return true;
+  if (item.armor !== 'any' && item.armor !== selectedClass.armor) return false;
+  if (!selectedSpec || item.roles === 'all') return true;
+  return item.roles.includes(selectedSpec.role);
+}
+
+// ── Cores ────────────────────────────────────────────────────────
+function updateAll() {
+  totalCores = Math.max(0, parseInt(document.getElementById('coreInput').value) || 0);
+  document.getElementById('totalVal').textContent = totalCores;
+  renderOrbs(); updateRollBtn();
+}
+
+function renderOrbs() {
+  document.getElementById('remainVal').textContent = Math.max(0, totalCores - usedCores);
+  const c = document.getElementById('coresDisplay'); c.innerHTML = '';
+  const show = Math.min(totalCores, 30);
+  for (let i = 0; i < show; i++) {
+    const o = document.createElement('div');
+    o.className = 'core-orb ' + (i < usedCores ? 'used' : 'avail');
+    o.textContent = i < usedCores ? '✓' : '◆';
+    c.appendChild(o);
+  }
+  if (totalCores > 30) {
+    const m = document.createElement('span');
+    m.style.cssText = 'font-size:0.75rem;color:var(--text-muted);align-self:center;margin-left:4px;';
+    m.textContent = `+${totalCores-30} more`; c.appendChild(m);
+  }
+}
+
+function updateRollBtn() {
+  const btn = document.getElementById('rollBtn');
+  if (!selectedActivity) { btn.disabled = true; return; }
+  const actDef = Object.values(ACTIVITY_GROUPS).flat().find(a => a.key === selectedActivity);
+  btn.disabled = (totalCores - usedCores) < (actDef ? actDef.cost : 1);
+}
+
+document.getElementById('coreInput').addEventListener('input', updateAll);
+
+// ── Activity tabs ─────────────────────────────────────────────────
+function switchGroup(group) {
+  activeGroup = group;
+  document.querySelectorAll('.act-tab').forEach(t => {
+    t.className = 'act-tab' + (t.dataset.group === group ? ' '+TAB_ACTIVE[group] : '');
+  });
+  const panel = document.getElementById('actPanel'); panel.innerHTML = '';
+  const grid = document.createElement('div'); grid.className = 'content-grid'; panel.appendChild(grid);
+  ACTIVITY_GROUPS[group].forEach(act => {
+    const card = document.createElement('div');
+    card.className = 'content-card ' + act.cardClass;
+    if (selectedActivity === act.key) card.classList.add('selected');
+    card.innerHTML = `<span class="ccost">${act.cost} core${act.cost>1?'s':''}</span><div class="cname">${act.label}</div><div class="cdetail">${act.detail}</div><span class="track-badge ${act.track}">${act.trackLabel}</span>`;
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedActivity = act.key;
+      renderLootPool(act.key);
+      updateRollBtn();
+    });
+    grid.appendChild(card);
+  });
+}
+
+// ── Loot pool ─────────────────────────────────────────────────────
+function renderLootPool(actKey) {
+  const pool = document.getElementById('lootPool');
+  document.getElementById('poolTitle').textContent = actKey + ' — loot pool';
+  const items = LOOT[actKey] || [];
+  const obtainedItems = obtained[actKey] || [];
+  const visible = items.filter(i => itemMatchesChar(i));
+  const hidden = items.length - visible.length;
+
+  const badge = document.getElementById('obtainedBadge');
+  const filtBadge = document.getElementById('filteredBadge');
+  const obtCount = obtainedItems.filter(n => visible.some(i => i.name===n)).length;
+  obtCount > 0 ? (badge.textContent = obtCount+' obtained', badge.style.display='inline') : (badge.style.display='none');
+  (hidden > 0 && selectedClass) ? (filtBadge.textContent = hidden+' filtered out', filtBadge.style.display='inline') : (filtBadge.style.display='none');
+
+  if (!visible.length) { pool.innerHTML = '<div class="loot-pool-empty">No items match your loot spec for this activity.</div>'; return; }
+  pool.innerHTML = '';
+  visible.forEach(item => {
+    const isObtained = obtainedItems.includes(item.name);
+    const row = document.createElement('div'); row.className = 'item-row';
+    const armorTag = item.armor !== 'any' ? `<span class="armor-tag">${item.armor}</span>` : '';
+    row.innerHTML = `<span class="item-slot ${slotClass(item.slot)}">${item.slot}</span><span class="item-name${isObtained?' obtained-name':''}">${item.name}</span>${armorTag}${item.priority&&!isObtained?'<span class="item-status status-priority">priority</span>':''}${isObtained?'<span class="item-status status-obtained">obtained</span>':''}`;
+    if (!isObtained) row.addEventListener('click', () => {
+      if (!obtained[actKey]) obtained[actKey] = [];
+      if (!obtained[actKey].includes(item.name)) { obtained[actKey].push(item.name); renderLootPool(actKey); }
+    });
+    pool.appendChild(row);
+  });
+}
+
+// ── Spend & history ───────────────────────────────────────────────
+function spendCore() {
+  if (!selectedActivity) return;
+  const actDef = Object.values(ACTIVITY_GROUPS).flat().find(a => a.key === selectedActivity);
+  const cost = actDef ? actDef.cost : 1;
+  if (totalCores - usedCores < cost) return;
+  usedCores += cost;
+  rolls.push({activity: selectedActivity, cost});
+  renderOrbs(); updateRollBtn(); renderHistory();
+}
+
+function renderHistory() {
+  const wrap = document.getElementById('historyWrap'), list = document.getElementById('historyList');
+  if (!rolls.length) { wrap.style.display='none'; return; }
+  wrap.style.display = 'block'; list.innerHTML = '';
+  rolls.forEach((r,i) => {
+    const row = document.createElement('div'); row.className = 'history-row';
+    row.innerHTML = `<span class="history-idx">${i+1}.</span><span class="history-act">${r.activity}</span><span class="history-cost">${r.cost} core${r.cost>1?'s':''}</span>`;
+    list.appendChild(row);
+  });
+}
+
+function resetAll() {
+  usedCores=0; rolls=[]; obtained={}; selectedActivity=null; selectedClass=null; selectedSpec=null; activeGroup=null;
+  document.querySelectorAll('.class-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor=''; b.style.background=''; });
+  document.getElementById('specRow').innerHTML = '';
+  document.getElementById('charSummary').textContent = 'No class selected — loot pool will show all items.';
+  document.getElementById('actPanel').innerHTML = '';
+  document.querySelectorAll('.act-tab').forEach(t => t.className = 'act-tab');
+  document.getElementById('lootPool').innerHTML = '<div class="loot-pool-empty">← Pick an activity above to plan your roll</div>';
+  document.getElementById('poolTitle').textContent = 'Select an activity to see the loot pool';
+  document.getElementById('obtainedBadge').style.display = 'none';
+  document.getElementById('filteredBadge').style.display = 'none';
+  document.getElementById('historyWrap').style.display = 'none';
+  document.getElementById('rollBtn').disabled = true;
+  renderOrbs();
+}
+
+updateAll();
+</script>
+</body>
+</html>
