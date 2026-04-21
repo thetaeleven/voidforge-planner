@@ -43,6 +43,10 @@
     .card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:1rem 1.125rem}
     .card.locked{opacity:.4;pointer-events:none;user-select:none}
     .tip{background:var(--surf);border:1px solid var(--bdr);border-left:3px solid var(--purple);border-radius:0 var(--rm) var(--rm) 0;padding:.65rem 1rem;font-size:.8rem;color:var(--txt2);line-height:1.65;margin-bottom:1rem}
+    .confirm-btn{padding:7px 20px;border-radius:var(--rm);border:1px solid var(--purple);background:rgba(127,111,255,.1);color:var(--purple);font-size:.875rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:background .12s}
+    .confirm-btn:hover{background:rgba(127,111,255,.2)}
+    .collapse-btn{margin-left:auto;background:none;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;font-family:var(--font);padding:2px 8px;border-radius:var(--r);transition:color .12s}
+    .collapse-btn:hover{color:var(--txt)}
     .tip strong{color:var(--txt);font-weight:500}
 
     /* class picker */
@@ -207,10 +211,19 @@
 
   <!-- Step 2 -->
   <div class="step">
-    <div class="step-hdr"><div class="step-n" id="s2n">2</div><div class="step-title">Current Gear</div></div>
+    <div class="step-hdr" id="s2hdr" style="cursor:default">
+      <div class="step-n" id="s2n">2</div>
+      <div class="step-title">Current Gear</div>
+      <button class="collapse-btn" id="s2toggle" onclick="toggleGearSection()" style="display:none">▼</button>
+    </div>
     <div class="card locked" id="gcard">
-      <div class="tip">Set the <strong>gear track</strong> for each slot. Leave as <strong>None</strong> if the slot is empty or the gear is Adventure track or lower.</div>
-      <div class="ggrid" id="ggrid"></div>
+      <div id="gbody">
+        <div class="tip">Set the <strong>gear track</strong> for each slot. Leave as <strong>None</strong> if the slot is empty or the gear is Adventure track or lower.</div>
+        <div class="ggrid" id="ggrid"></div>
+        <div style="margin-top:1rem">
+          <button class="confirm-btn" onclick="confirmGear()">Confirm Gear</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -299,6 +312,107 @@ const ITEM_IDS={
   'Brazier of the Dissonant Dirge':249286,'Robes of Endless Oblivion':249912,
   'Mask of Darkest Intent':249913,'Oblivion Guise':249914,
   'Extinction Guards':249915,'Chiming Void Curio':249367,
+  // ── Voidspire Boss 1 (additional) ──
+  'Weight of Command':249293,'Leggings of the Devouring Advance':249323,
+  "Light's March Bracers":249326,
+  // ── Voidspire Boss 3 (additional) ──
+  'Twisted Twilight Sash':249314,"Fallen King's Cuffs":249304,
+  'Crown of the Fractured Tyrant':249316,
+  // ── Voidspire Boss 4 (additional) ──
+  "Clutchmates' Caress":249287,'Slippers of the Midnight Flame':249305,
+  "Nullwalker's Dread Epaulettes":249318,
+  // ── Voidspire Boss 5 (additional) ──
+  "War Chaplain's Grips":249330,'Lightblood Greaves':249311,
+  // ── Voidspire tier tokens ──
+  'Voidwoven Hungering Nullcore':249351,'Voidcured Hungering Nullcore':249352,
+  'Voidcast Hungering Nullcore':249353,'Voidforged Hungering Nullcore':249354,
+  'Voidwoven Unraveled Nullcore':249363,'Voidcured Unraveled Nullcore':249364,
+  'Voidcast Unraveled Nullcore':249365,'Voidforged Unraveled Nullcore':249366,
+  'Voidwoven Corrupted Nullcore':249359,'Voidcured Corrupted Nullcore':249360,
+  'Voidcast Corrupted Nullcore':249361,'Voidforged Corrupted Nullcore':249362,
+  'Voidwoven Fanatical Nullcore':249355,'Voidcured Fanatical Nullcore':249356,
+  'Voidcast Fanatical Nullcore':249357,'Voidforged Fanatical Nullcore':249358,
+  // ── Dreamrift tier tokens ──
+  'Alnwoven Riftbloom':249347,'Alncured Riftbloom':249348,
+  'Alncast Riftbloom':249349,'Alnforged Riftbloom':249350,
+  // ── Voidspire Boss 6 (additional) ──
+  'Gaze of the Unrestrained':249329,"Canopy Walker's Footwraps":249382,
+  "Nightblade's Pantaloons":249312,"Untethered Berserker's Grips":249325,
+  // ── Dreamrift tier token ──
+  'Alnwoven Riftbloom':249347,
+  // ── Nexus-Point Xenas ──
+  "Nysarra's Mantle":251213,'Leyline Leggings':251216,'Maledict Vest':251214,
+  "Corewright's Zappers":251211,'Eclipse Espadrilles':251210,
+  'Corewarden Cuffs':251209,'Greaves of the Divine Guile':251215,
+  'Searing Spaulders':251212,"Kasreth's Bindings":251207,
+  'Lightscarred Cuisses':251208,'Radiant Slicer':251219,'Dreadflail Bludgeon':251218,
+  'Corespark Multitool':251217,
+  'Heart of Wind':250256,"Latch's Crooked Hook":250227,"Kroluk's Warbanner":250227,
+  'Emberwing Feather':250144,'Pendant of Aching Grief':251096,'Warworn Cleaver':251088,
+  'Excavating Cudgel':251083,"Hurricane's Heart":251077,'Emberdawn Defender':251078,
+  'Brambledawn Halo':251080,'Mantle of Dark Devotion':251085,"Commander's Faded Breeches":251090,
+  "Fallen Grunt's Mantle":251092,'Vest of the Howling Gale':251099,
+  'Snapvine Cinch':251082,'Legwraps of Lingering Legacies':251087,
+  "Spaulders of Arrow's Flight":251094,'Amberfrond Bracers':251079,
+  'Grips of Forgotten Honor':251089,'Whipcoil Sabatons':251084,
+  "Fletcher's Faded Faceplate":251098,'Riphook Defender':251086,
+  'Sabatons of Furious Revenge':251091,'Embergrove Grasps':251081,
+  "Roostwarden's Bough":251077,
+  // ── Pit of Saron (classic Wrath item IDs) ──
+  'Barbed Ymirheim Choker':50228,'Purloined Wedding Ring':49812,
+  "Krick's Beetle Stabber":49807,"Surgeon's Needle":49808,
+  "Garfrost's Two-Ton Hammer":50235,'Rimebane Rifle':50233,
+  'Palebone Robes':50199,'Wristguards of Subterranean Moss':50205,
+  'Braid of Salt and Fire':50202,'Ice-Steeped Sandals':50200,
+  'Chewed Leather Wristguards':50206,"Flayer's Black Belt":50203,
+  'Shaggy Wyrmleather Leggings':50207,"Horns of the Spurned Val'kyr":50210,
+  "Spurned Val'kyr Shoulderguards":50213,'Scabrous Zombie Belt':50215,
+  'Black Dragonskin Breeches':50216,"Skeleton Lord's Cranium":50218,
+  'Shoulderplates of Frozen Blood':50219,'Frost Wyrm Ribcage':50220,
+  'Bent Gold Belt':50221,
+  // ── Seat of the Triumvirate (Legion item IDs) ──
+  'Necklace of the Twisting Void':151309,'Void Stalker\'s Contract':151307,
+  'Ampoule of Pure Void':151306,"Echo of L'ura":151310,
+  'Reality Breacher':151311,'Eredath Seal of Nobility':151308,
+  'Band of the Triumvirate':151312,'Occlusion of Void':251217,
+  'Omission of Light':251093,
+  // ── Nexus-Point Xenas ──
+  'Whisper of the Duskwraith':251218,'Mark of Light':251219,
+  // ── Algeth'ar Academy (Dragonflight item IDs) ──
+  "Algeth'ar Puzzle Box":193701,'Dragon Games Equipment':193719,
+  "Emerald Coach's Whistle":193773,"Mystakria's Harvester":193717,
+  'Spellbane Cutlass':193711,"Algeth'ar Hedgecleaver":193715,
+  'Final Grade':193716,"Vexamus' Expulsion Rod":193713,
+  // ── Maisara Caverns ──
+  "Soulcatcher's Charm":250223,'Vessel of Tortured Souls':250258,
+  'Rotting Globule':250224,'Shroud of the Soulhunter':251161,
+  'Soulblight Cleaver':251175,'Ceremonial Hexblade':251173,
+  "Berserker's Hexclaws":251172,"Traitor's Talon":251171,
+  "Deceiver's Rotbow":251174,"Liferipper's Cutlass":251168,
+  // ── Skyreach (Warlords item IDs) ──
+  'Solarflare Prism':252420,'Solar Core Igniter':252418,'Radiant Sunstone':252411,
+  'Rigid Scale Greatcloak':258575,"Viryx's Indomitable Bulwark":258049,
+  "Rukhran's Solar Reliquary":258472,
+  // ── Skyreach armor ──
+  'Edge of the Burning Sun':258436,'Blazing Sunclaws':258048,
+  'Arcanic of the High Sage':258050,'Beakbreaker Scimitar':258054,
+  "Skybreaker's Blade":258056,'Sunlance of Viryx':258484,
+  'Spire of the Furious Construct':258057,'Chakram-Breaker Greatsword':258055,
+  "Stormshaper's Crossbow":258053,
+  'Lightbinder Shoulderguards':258578,'Bracers of Blazing Light':258580,
+  'Legwraps of Swirling Light':258582,'Lightbinder Treads':258584,
+  'Bloodfeather Mantle':258586,'Bloodfeather Chestguard':258588,
+  'Boots of Burning Focus':258590,'Sharpeye Gleam':258592,
+  'Sharpeye Chestguard':258594,'Rigid Scale Boots':258596,
+  'Gutcrusher Greathelm':258598,'Spaulders of Scorching Ray':258600,
+  'Incarnadine Gauntlets':258602,
+  // ── Maisara Caverns armor ──
+  'Enthralled Bonespines':251171,"Falconer's Cinch":251166,
+  "Reanimator's Weight":251176,'Decaying Cuirass':251164,
+  'Wickedweave Trousers':251170,"Amalgamation's Harness":251177,
+  "Trollhunter's Bands":251178,'Footwraps of Ill-Fate':251167,
+  'Vilehex Bonds':251163,'Fetid Vilecrown':251165,'Nightprey Stalkers':251169,
+  "Bronze Challenger's Robe":251162,
   // ── Magisters' Terrace ──
   'Jelly Replicator':250242,'Eye of the Drowning Void':250257,'Refueling Orb':250246,
   'Bifurcation Band':251115,"Defiant Defender's Drape":260312,
@@ -1001,10 +1115,40 @@ function updateSummary(){
   if(!SS){el.innerHTML=`<strong>${SC.name}</strong> — ${ar} armor. Select a spec to continue.`;return;}
   el.innerHTML=`<strong>${SC.name}</strong> · <strong>${SS.name}</strong> · ${ar} armor · ${{str:'Strength',agi:'Agility',int:'Intellect'}[SS.stat]}`;
 }
+let gearConfirmed=false;
+
 function lock(){
-  const ok=!!(SC&&SS);
-  ['gcard','acard','rcard'].forEach(id=>document.getElementById(id).classList.toggle('locked',!ok));
-  document.getElementById('s1n').classList.toggle('done',ok);
+  const charOk=!!(SC&&SS);
+  const gearOk=charOk&&gearConfirmed;
+  // Step 2 unlocks on char select
+  document.getElementById('gcard').classList.toggle('locked',!charOk);
+  // Steps 3+4 unlock only after gear confirmed
+  ['acard','rcard'].forEach(id=>document.getElementById(id).classList.toggle('locked',!gearOk));
+  document.getElementById('s1n').classList.toggle('done',charOk);
+  document.getElementById('s2n').classList.toggle('done',gearOk);
+  // Show collapse toggle only after confirmed
+  const tog=document.getElementById('s2toggle');
+  if(tog)tog.style.display=gearOk?'':'none';
+}
+
+function confirmGear(){
+  gearConfirmed=true;
+  // Collapse the gear body after confirming
+  const body=document.getElementById('gbody');
+  const tog=document.getElementById('s2toggle');
+  body.style.display='none';
+  if(tog){tog.style.display='';tog.textContent='▶';}
+  lock();
+  rebuildPools();
+  buildRec();
+}
+
+function toggleGearSection(){
+  const body=document.getElementById('gbody');
+  const tog=document.getElementById('s2toggle');
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'';
+  if(tog)tog.textContent=open?'▶':'▼';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1026,11 +1170,11 @@ function setGear(slot,track){
   gear[slot]=track;
   const d=document.getElementById('gs_'+slot.replace(/\s/g,'_'));
   if(d)d.classList.toggle('filled',track!=='none');
-  buildRec();
+  // Don't rebuild until confirmed — just update visuals
 }
 function setTier(slot,val){
   tierHave[slot]=val;
-  buildRec();
+  // Don't rebuild until confirmed
 }
 buildGearGrid();
 
@@ -1358,7 +1502,8 @@ function buildRec(){
 // RESET
 // ═══════════════════════════════════════════════════════
 function resetAll(){
-  SC=null;SS=null;gear={};tierHave={};selActs=new Set();rolled={};banished={};diff='heroic';
+  SC=null;SS=null;gear={};tierHave={};gearConfirmed=false;
+  selActs=new Set();rolled={};banished={};diff='heroic';
   document.querySelectorAll('.cbtn').forEach(b=>{b.classList.remove('on');b.style.borderColor='';b.style.background='';});
   document.getElementById('srow').innerHTML='';
   document.getElementById('csum').textContent='Select a class and spec to begin.';
@@ -1366,6 +1511,9 @@ function resetAll(){
   document.querySelectorAll('.atab:not(.atab-disabled)').forEach(t=>t.className='atab');
   document.getElementById('pools').innerHTML='';
   document.getElementById('rlst').innerHTML='<div class="rempty">Select activities above to see recommendations.</div>';
+  document.getElementById('gbody').style.display='';
+  const tog=document.getElementById('s2toggle');
+  if(tog){tog.style.display='none';tog.textContent='▼';}
   lock();buildGearGrid();
 }
 
