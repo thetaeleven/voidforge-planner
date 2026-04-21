@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Voidforge Planner — WoW Midnight Season 1</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>">
+  <script>var whTooltips={colorLinks:true,iconizeLinks:true,renameLinks:false};</script>
+  <script src="https://wow.zamimg.com/widgets/power.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -135,6 +137,8 @@
     .irow.banished{opacity:.3}
     .islot{font-size:.68rem;padding:2px 7px;border-radius:4px;font-weight:600;min-width:62px;text-align:center;flex-shrink:0}
     .inm{font-size:.8rem;color:var(--txt);flex:1}
+    .inm a.inm-text,.inm-text{font-size:.8rem;color:inherit;text-decoration:none}
+    .inm a.inm-text:hover{text-decoration:underline;text-underline-offset:2px}
     .rolled-nm{text-decoration:line-through;color:var(--muted)}
     .ban-nm{text-decoration:line-through;color:var(--muted);font-style:italic}
     .itag{font-size:.63rem;padding:2px 7px;border-radius:99px;font-weight:600;white-space:nowrap}
@@ -244,6 +248,71 @@
 // ═══════════════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// WOWHEAD ITEM IDs — for tooltip links
+// ═══════════════════════════════════════════════════════
+const ITEM_IDS={
+  // ── Voidspire Boss 1 ──
+  'Light Company Guidon':249344,"Imperator's Banner":249335,'Sunstrike Rifle':249279,
+  'Bulwark of Noble Resolve':249275,'Endless March Waistwrap':249319,
+  "Devouring Night's Visage":249306,'Void-Claimed Shinkickers':249334,
+  'Robes of the Voidbound':249310,'Sabatons of Obscurement':249320,
+  'Light-Judged Spaulders':249313,
+  // ── Voidspire Boss 2 ──
+  'Heart of Ancient Hunger':249342,'Signet of the Starved Beast':249336,
+  'Hungering Victory':249925,'Inescapable Reach':249302,
+  'Grimoire of the Eternal Light':249276,'Voracious Wristwraps':249315,
+  'Void-Skinned Bracers':249327,"Frenzy's Rebuke":249317,'Parasite Stompers':249332,
+  // ── Voidspire Boss 3 ──
+  'Volatile Void Suffuser':249341,'Wraps of Cosmic Madness':249340,
+  'Ribbon of Coiled Malice':249337,"Tormentor's Bladed Fists":249298,
+  'Blade of the Final Twilight':249294,'Despotic Raiment':249308,
+  // ── Voidspire Boss 4 ──
+  'Gloom-Spattered Dreadscale':249339,"Vaelgor's Final Stare":249346,
+  'Draconic Nullcape':249370,"Emblazoned Sunglaive":249280,
+  "Vaelgor's Fearsome Grasp":249321,"Ezzorak's Gloombind":249331,
+  // ── Voidspire Boss 5 ──
+  'Litany of Lightblind Wrath':249808,'Bond of Light':249369,
+  'Blade of the Blind Verdict':249294,"Bellamy's Final Judgement":249277,
+  'Blooming Barklight Spaulders':249333,'Waistcord of the Judged':249303,
+  // ── Voidspire Boss 6 ──
+  "Locus-Walker's Ribbon":249809,"Ranger-Captain's Iridescent Insignia":249345,
+  'Eternal Voidsong Chain':249368,"Turalyon's False Echo":249295,
+  "Arator's Swift Remembrance":260423,"Ranger-Captain's Lethal Recurve":249288,
+  'Hate-Tied Waistchain':249380,'Sunbound Breastplate':249309,
+  // ── Dreamrift ──
+  'Gaze of the Alnseer':249343,"Undreamt God's Oozing Vestige":249805,
+  'Alnscorned Spire':249278,'Tome of Alnscorned Regret':249922,
+  'Dream-Scorched Striders':249373,"Scorn-Scarred Shul'ka's Belt":249374,
+  'Scornbane Waistguard':249371,'Greaves of the Unformed':249381,
+  // ── March of Quel'Danas — Belo'ren ──
+  'Radiant Plume':249806,'Umbral Plume':260235,'The Eternal Egg':249807,
+  "Sin'dorei Band of Hope":249919,"Belo'melorn, the Shattered Talon":249283,
+  "Belo'ren's Swift Talon":249284,'Thalassian Dawnguard':249921,
+  'Whisper-Inscribed Sash':249376,'Echoing Void Mantle':249328,
+  "Radiant Clutchtender's Jerkin":249322,'Eternal Flame Scaleguards':249324,
+  'Darkstrider Treads':249377,'Emberborn Grasps':249307,
+  // ── March of Quel'Danas — Midnight Falls ──
+  'Light of the Cosmic Crescendo':249811,'Shadow of the Empyrean Requiem':249810,
+  'Amulet of the Abyssal Hymn':250247,'Eye of Midnight':249920,
+  'Lightless Lament':260408,"Alah'endal, the Dawnsong":249296,
+  'Brazier of the Dissonant Dirge':249286,'Robes of Endless Oblivion':249912,
+  'Mask of Darkest Intent':249913,'Oblivion Guise':249914,
+  'Extinction Guards':249915,'Chiming Void Curio':249367,
+  // ── Magisters' Terrace ──
+  'Jelly Replicator':250242,'Eye of the Drowning Void':250257,'Refueling Orb':250246,
+  'Bifurcation Band':251115,"Defiant Defender's Drape":260312,
+  'Splitshroud Stinger':251111,'Shadowslash Slicer':251122,
+  'Resolute Runeglaive':251106,'Whirling Voidcleaver':251117,
+  'Ward of the Spellbreaker':251105,
+};
+
+function itemLink(name){
+  const id=ITEM_IDS[name];
+  if(!id)return`<span class="inm-text">${name}</span>`;
+  return`<a href="https://www.wowhead.com/item=${id}" data-wowhead="item=${id}" class="inm-text" target="_blank" rel="noopener">${name}</a>`;
+}
+
 const TIER_SLOTS=new Set(['Head','Shoulder','Chest','Hands','Legs']);
 
 const TRACKS=['none','veteran','champion','hero','myth'];
@@ -1182,11 +1251,12 @@ function rebuildPools(){
         <button class="iact iact-roll ${rollActive}" title="${isR?'Unmark rolled':'Mark as rolled'}" onclick="toggleRolled(event,'${ak}','${item.name.replace(/'/g,"\\'")}')">✓</button>
         <button class="iact iact-ban ${banActive}" title="${isB?'Unbanish':'Banish item'}" onclick="toggleBanished(event,'${ak}','${item.name.replace(/'/g,"\\'")}')">🚫</button>
       </span>`;
-      row.innerHTML=`<span class="islot ${slotCls(item.slot)}">${item.slot}</span><span class="inm${isR?' rolled-nm':''}${isB?' ban-nm':''}">${item.name}</span>${tags}${btns}`;
+      row.innerHTML=`<span class="islot ${slotCls(item.slot)}">${item.slot}</span><span class="inm${isR?' rolled-nm':''}${isB?' ban-nm':''}">${itemLink(item.name)}</span>${tags}${btns}`;
       body.appendChild(row);
     });
     con.appendChild(div);
   });
+  if(window.$WowheadPower)$WowheadPower.refreshLinks();
   buildRec();
 }
 
@@ -1268,7 +1338,7 @@ function buildRec(){
       if(item.tier)    tags+=`<span class="itag it-tier">tier</span>`;
       if(item.veryRare)tags+=`<span class="itag it-rare">very rare</span>`;
       if(up)           tags+=`<span class="itag it-up">possible upgrade</span>`;
-      row.innerHTML=`<span class="islot ${slotCls(item.slot)}">${item.slot}</span><span class="inm">${item.name}</span>${tags}`;
+      row.innerHTML=`<span class="islot ${slotCls(item.slot)}">${item.slot}</span><span class="inm">${itemLink(item.name)}</span>${tags}`;
       tbl.appendChild(row);
     });
     hdr.style.cursor='pointer';
@@ -1276,7 +1346,7 @@ function buildRec(){
       const open=tbl.style.display!=='none';
       tbl.style.display=open?'none':'';
       hdr.querySelector('.chevron').textContent=open?'▶':'▼';
-      if(!open)hdr.classList.add('rec-hdr-open');
+      if(!open){hdr.classList.add('rec-hdr-open');if(window.$WowheadPower)$WowheadPower.refreshLinks();}
       else hdr.classList.remove('rec-hdr-open');
     });
     wrap.appendChild(tbl);
