@@ -4,907 +4,1307 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Voidforge Planner — WoW Midnight Season 1</title>
-  <meta name="description" content="Plan your Nebulous Voidcore bonus rolls for World of Warcraft Midnight Season 1. Filter loot by class and spec across raids, Mythic+, Delves, and Prey Hunts.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>">
   <style>
-    /* ── Reset & base ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0d0d14;--surf:#13131f;--raised:#1a1a2a;--hover:#1f1f32;
+      --bdr:rgba(139,120,255,.15);--bdr-mid:rgba(139,120,255,.28);
+      --txt:#e8e4ff;--txt2:#9b94c4;--muted:#5c5680;
+      --purple:#7f6fff;--pdim:#3d3880;--pglow:rgba(127,111,255,.18);
+      --amber:#d4963a;--adim:#6b4a18;
+      --teal:#3cbf90;--tdim:#1a5c44;
+      --coral:#d46060;--cdim:#5c2828;
+      --blue:#5a9fff;--bdim:#1e3d6b;
+      --green:#5abf72;--gdim:#1e5230;
+      --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      --r:6px;--rm:10px;--rl:14px;
+    }
+    html{font-size:16px}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;line-height:1.6}
 
-    :root {
-      --bg-page:        #0d0d14;
-      --bg-surface:     #13131f;
-      --bg-raised:      #1a1a2a;
-      --bg-hover:       #1f1f32;
-      --border:         rgba(139,120,255,0.15);
-      --border-mid:     rgba(139,120,255,0.28);
-      --border-strong:  rgba(139,120,255,0.5);
-      --text-primary:   #e8e4ff;
-      --text-secondary: #9b94c4;
-      --text-muted:     #5c5680;
-      --purple:         #7f6fff;
-      --purple-dim:     #3d3880;
-      --purple-glow:    rgba(127,111,255,0.18);
-      --amber:          #d4963a;
-      --amber-dim:      #6b4a18;
-      --teal:           #3cbf90;
-      --teal-dim:       #1a5c44;
-      --coral:          #d46060;
-      --coral-dim:      #5c2828;
-      --blue:           #5a9fff;
-      --blue-dim:       #1e3d6b;
-      --green:          #5abf72;
-      --green-dim:      #1e5230;
-      --radius-sm:      6px;
-      --radius-md:      10px;
-      --radius-lg:      14px;
-      --font:           -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
+    /* header */
+    .hdr{background:linear-gradient(180deg,#08080f 0%,var(--bg) 100%);border-bottom:1px solid var(--bdr);padding:1.5rem 0 1.25rem;text-align:center;margin-bottom:2rem;position:relative;overflow:hidden}
+    .hdr::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:500px;height:200px;background:radial-gradient(ellipse,rgba(127,111,255,.18) 0%,transparent 70%);pointer-events:none}
+    .badge{display:inline-block;font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:var(--pglow);border:1px solid var(--bdr-mid);color:var(--purple);padding:3px 12px;border-radius:99px;margin-bottom:.75rem;position:relative}
+    .hdr h1{font-size:1.875rem;font-weight:700;letter-spacing:-.02em;position:relative}
+    .hdr h1 span{color:var(--purple)}
+    .hdr p{font-size:.875rem;color:var(--txt2);margin-top:.3rem;position:relative}
 
-    html { font-size: 16px; }
-    body {
-      font-family: var(--font);
-      background: var(--bg-page);
-      color: var(--text-primary);
-      min-height: 100vh;
-      line-height: 1.6;
-    }
+    /* layout */
+    .wrap{max-width:920px;margin:0 auto;padding:0 1.25rem 4rem}
+    .step{margin-bottom:2rem}
+    .step-hdr{display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+    .step-n{width:24px;height:24px;border-radius:50%;background:var(--pglow);border:1px solid var(--bdr-mid);color:var(--purple);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border-color .2s}
+    .step-n.done{background:var(--pdim);border-color:var(--purple);color:#c8c0ff}
+    .step-title{font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:1rem 1.125rem}
+    .card.locked{opacity:.4;pointer-events:none;user-select:none}
+    .tip{background:var(--surf);border:1px solid var(--bdr);border-left:3px solid var(--purple);border-radius:0 var(--rm) var(--rm) 0;padding:.65rem 1rem;font-size:.8rem;color:var(--txt2);line-height:1.65;margin-bottom:1rem}
+    .tip strong{color:var(--txt);font-weight:500}
 
-    /* ── Site header ── */
-    .site-header {
-      background: linear-gradient(180deg, #0a0a15 0%, var(--bg-page) 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 1.5rem 0 1rem;
-      text-align: center;
-      margin-bottom: 2rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .site-header::before {
-      content: '';
-      position: absolute;
-      top: -60px; left: 50%;
-      transform: translateX(-50%);
-      width: 400px; height: 180px;
-      background: radial-gradient(ellipse, rgba(127,111,255,0.2) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .site-header h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
-      position: relative;
-    }
-    .site-header h1 span { color: var(--purple); }
-    .site-header p {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      margin-top: 0.25rem;
-      position: relative;
-    }
-    .season-badge {
-      display: inline-block;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      background: var(--purple-glow);
-      border: 1px solid var(--border-mid);
-      color: var(--purple);
-      padding: 3px 10px;
-      border-radius: 99px;
-      margin-bottom: 0.75rem;
-    }
+    /* class picker */
+    .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px;margin-bottom:.875rem}
+    .cbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 6px;border-radius:var(--rm);border:1px solid var(--bdr);background:var(--raised);cursor:pointer;transition:border-color .12s,background .12s}
+    .cbtn:hover{border-color:var(--bdr-mid);background:var(--hover)}
+    .cbtn.on{border-width:1.5px}
+    .cico{font-size:1.2rem;line-height:1}
+    .cnm{font-size:.65rem;text-align:center;line-height:1.3;color:var(--txt2)}
+    .cbtn.on .cnm{font-weight:600;color:var(--txt)}
+    .srow{display:flex;gap:6px;flex-wrap:wrap;min-height:32px;margin-bottom:.75rem}
+    .sbtn{padding:5px 12px;border-radius:var(--rm);border:1px solid var(--bdr);background:var(--raised);font-size:.8rem;color:var(--txt2);cursor:pointer;font-family:var(--font);transition:border-color .12s,background .12s}
+    .sbtn:hover{border-color:var(--bdr-mid)}
+    .sbtn.on{border-width:1.5px;font-weight:600;color:var(--txt)}
+    .rtag{font-size:.6rem;padding:1px 5px;border-radius:3px;margin-left:5px;font-weight:600}
+    .rt{background:var(--bdim);color:var(--blue)}
+    .rh{background:var(--gdim);color:var(--green)}
+    .rd{background:var(--cdim);color:var(--coral)}
+    .csum{font-size:.8rem;color:var(--txt2);border-top:1px solid var(--bdr);padding-top:.65rem}
+    .csum strong{color:var(--txt);font-weight:500}
 
-    /* ── Layout ── */
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 0 1.25rem 3rem;
-    }
+    /* gear */
+        
+    
+    .ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;margin-top:.875rem}
+    .gslot{background:var(--raised);border:1px solid var(--bdr);border-radius:var(--rm);padding:8px 10px;transition:border-color .15s}
+    .gslot.filled{border-color:var(--bdr-mid)}
+    .gslot-nm{font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+    .gslot.filled .gslot-nm{color:var(--txt2)}
+    .gslot select{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);color:var(--txt);font-family:var(--font);font-size:.78rem;padding:4px 6px;outline:none;cursor:pointer}
+    .gslot select:focus{border-color:var(--purple)}
 
-    /* ── Section labels ── */
-    .section-label {
-      font-size: 0.675rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 0.6rem;
-    }
+    /* activities */
+    .atabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.75rem}
+    .atab{padding:6px 14px;border-radius:var(--rm);border:1px solid var(--bdr);background:var(--raised);font-size:.8rem;font-weight:500;color:var(--txt2);cursor:pointer;font-family:var(--font);transition:all .12s}
+    .atab:hover{border-color:var(--bdr-mid);color:var(--txt)}
+    .atab.ar{background:rgba(212,96,96,.12);border-color:var(--coral);color:var(--coral)}
+    .atab.am{background:rgba(90,159,255,.12);border-color:var(--blue);color:var(--blue)}
+    .atab.ad{background:rgba(60,191,144,.12);border-color:var(--teal);color:var(--teal)}
+    .atab.ap{background:var(--pglow);border-color:var(--purple);color:var(--purple)}
+    .apanel{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:12px;margin-bottom:1.25rem;min-height:60px}
+    .rlabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
+    .drow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+    .dbtn{padding:4px 12px;border-radius:var(--rm);border:1px solid var(--bdr);background:var(--raised);font-size:.78rem;font-weight:500;color:var(--txt2);cursor:pointer;font-family:var(--font);transition:all .12s}
+    .dbtn:hover{border-color:var(--bdr-mid)}
+    .dbtn.dn{background:rgba(212,96,96,.12);border-color:var(--coral);color:var(--coral)}
+    .dbtn.dh{background:rgba(90,159,255,.12);border-color:var(--blue);color:var(--blue)}
+    .dbtn.dm{background:var(--pglow);border-color:var(--purple);color:var(--purple)}
+    .bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:7px}
+    .bcard{background:var(--raised);border:1px solid var(--bdr);border-radius:var(--rm);padding:9px 11px;cursor:pointer;transition:border-color .12s,background .12s;position:relative}
+    .bcard:hover{background:var(--hover);border-color:var(--bdr-mid)}
+    .bcard.on{border-color:var(--coral);background:rgba(212,96,96,.07);border-width:1.5px}
+    .bnum{font-size:.6rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+    .bnm{font-size:.78rem;font-weight:600;color:var(--txt);margin-top:2px;line-height:1.3}
+    .bilvl{font-size:.68rem;color:var(--muted);margin-top:2px}
+    .bcost{position:absolute;top:8px;right:8px;font-size:.63rem;font-weight:600;padding:2px 6px;border-radius:99px;background:rgba(212,96,96,.15);color:var(--coral)}
+    .bcheck{position:absolute;top:7px;left:8px;font-size:.7rem;color:var(--coral);display:none}
+    .bcard.on .bcheck{display:block}
+    .ccgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:7px}
+    .cccard{background:var(--raised);border:1px solid var(--bdr);border-radius:var(--rm);padding:10px 12px 9px;cursor:pointer;position:relative;transition:border-color .12s,background .12s}
+    .cccard:hover{background:var(--hover);border-color:var(--bdr-mid)}
+    .cccard.on{border-width:1.5px}
+    .ccnm{font-size:.84rem;font-weight:600;color:var(--txt);margin-bottom:2px}
+    .ccdet{font-size:.68rem;color:var(--muted);line-height:1.5}
+    .cccost{position:absolute;top:8px;right:9px;font-size:.63rem;font-weight:600;padding:2px 6px;border-radius:99px}
+    .tbadge{display:inline-block;font-size:.62rem;padding:2px 6px;border-radius:99px;margin-top:4px;font-weight:600}
+    .mp .cccost{background:rgba(90,159,255,.15);color:var(--blue)}   .mp.on{border-color:var(--blue);background:rgba(90,159,255,.07)}
+    .dl .cccost{background:rgba(60,191,144,.15);color:var(--teal)}   .dl.on{border-color:var(--teal);background:rgba(60,191,144,.07)}
+    .pr .cccost{background:var(--pglow);color:var(--purple)}         .pr.on{border-color:var(--purple);background:var(--pglow)}
+    .tc{background:rgba(90,159,255,.12);color:var(--blue)}
+    .th{background:rgba(90,191,114,.12);color:var(--green)}
+    .tm{background:rgba(127,111,255,.15);color:var(--purple)}
+    .tv{background:rgba(155,148,196,.1);color:var(--txt2)}
+    .pnote{font-size:.72rem;color:var(--blue);background:rgba(90,159,255,.08);border:1px solid rgba(90,159,255,.18);padding:5px 10px;border-radius:var(--r);margin-bottom:9px}
 
-    /* ── Tip box ── */
-    .tip-box {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--purple);
-      border-radius: 0 var(--radius-md) var(--radius-md) 0;
-      padding: 0.75rem 1rem;
-      font-size: 0.8125rem;
-      color: var(--text-secondary);
-      line-height: 1.65;
-      margin-bottom: 1.75rem;
-    }
-    .tip-box strong { color: var(--text-primary); font-weight: 500; }
+    /* pools */
+    .pools{display:flex;flex-direction:column;gap:1rem;margin-top:.75rem}
+    .pool{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden}
+    .pool-hdr{display:flex;align-items:center;gap:8px;padding:.65rem 1rem;border-bottom:1px solid var(--bdr);background:var(--raised);cursor:pointer;user-select:none}
+    .pool-hdr:hover{background:var(--hover)}
+    .pool-title{font-size:.84rem;font-weight:600;color:var(--txt);flex:1}
+    .pool-upgrades{font-size:.65rem;color:var(--teal);font-weight:600}
+    .pool-rolled{font-size:.65rem;color:var(--amber)}
+    .pool-banished{font-size:.65rem;color:var(--coral)}
+    .pool-cost{font-size:.65rem;color:var(--muted)}
+    .chevron{font-size:.7rem;color:var(--muted);margin-right:4px}
+    .pool-body{padding:.5rem 1rem}
+    .irow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bdr);border-radius:3px;transition:background .1s}
+    .irow:last-child{border-bottom:none}
+    .irow:hover{background:rgba(255,255,255,.02)}
+    .irow.rolled{opacity:.45}
+    .irow.banished{opacity:.3}
+    .islot{font-size:.68rem;padding:2px 7px;border-radius:4px;font-weight:600;min-width:62px;text-align:center;flex-shrink:0}
+    .inm{font-size:.8rem;color:var(--txt);flex:1}
+    .rolled-nm{text-decoration:line-through;color:var(--muted)}
+    .ban-nm{text-decoration:line-through;color:var(--muted);font-style:italic}
+    .itag{font-size:.63rem;padding:2px 7px;border-radius:99px;font-weight:600;white-space:nowrap}
+    .it-up{background:rgba(60,191,144,.12);color:var(--teal)}
+    .it-tier{background:rgba(155,148,196,.1);color:var(--txt2);border:1px solid var(--bdr)}
+    .it-rare{background:rgba(212,150,58,.2);color:var(--amber);border:1px solid rgba(212,150,58,.3)}
+    .ibtns{display:flex;gap:4px;flex-shrink:0}
+    .iact{background:none;border:1px solid var(--bdr);border-radius:5px;cursor:pointer;font-size:.75rem;padding:2px 6px;color:var(--muted);transition:all .12s;font-family:var(--font)}
+    .iact:hover{border-color:var(--bdr-mid);color:var(--txt)}
+    .iact-roll.active{background:rgba(60,191,144,.15);border-color:var(--teal);color:var(--teal)}
+    .iact-ban.active{background:rgba(212,96,96,.15);border-color:var(--coral);color:var(--coral)}
+    /* disabled activity tabs */
+    .atab-disabled{opacity:.35;cursor:not-allowed !important}
+    /* tier checkbox */
+    .tier-chk{display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--txt2);cursor:pointer;margin-left:4px;white-space:nowrap}
+    .tier-chk input{cursor:pointer;accent-color:var(--purple)}
+    .st{background:rgba(212,150,58,.15);color:var(--amber)}
+    .sr{background:rgba(127,111,255,.15);color:var(--purple)}
+    .sw{background:rgba(212,96,96,.15);color:var(--coral)}
+    .sn{background:rgba(60,191,144,.15);color:var(--teal)}
+    .sb2{background:rgba(60,191,144,.15);color:var(--teal)}
+    .sa{background:rgba(90,159,255,.12);color:var(--blue)}
+    .sd{background:rgba(155,148,196,.1);color:var(--txt2)}
 
-    /* ── Cards / surfaces ── */
-    .card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1rem 1.125rem;
-      margin-bottom: 1.75rem;
-    }
-
-    /* ── Class picker ── */
-    .class-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
-      gap: 6px;
-      margin-bottom: 1rem;
-    }
-    .class-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 9px 4px 7px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      background: var(--bg-raised);
-      cursor: pointer;
-      transition: border-color 0.12s, background 0.12s;
-      color: var(--text-secondary);
-    }
-    .class-btn:hover { border-color: var(--border-mid); background: var(--bg-hover); }
-    .class-btn.active { border-width: 1.5px; }
-    .class-icon { font-size: 1.25rem; line-height: 1; }
-    .class-name { font-size: 0.68rem; text-align: center; line-height: 1.3; }
-    .class-btn.active .class-name { font-weight: 600; color: var(--text-primary); }
-
-    .spec-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 0.75rem; min-height: 32px; }
-    .spec-btn {
-      padding: 5px 12px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      background: var(--bg-raised);
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: border-color 0.12s, background 0.12s;
-      font-family: var(--font);
-    }
-    .spec-btn:hover { border-color: var(--border-mid); }
-    .spec-btn.active { border-width: 1.5px; font-weight: 600; color: var(--text-primary); }
-    .spec-role-tag {
-      font-size: 0.65rem;
-      padding: 1px 6px;
-      border-radius: 3px;
-      margin-left: 5px;
-      font-weight: 600;
-    }
-    .tag-tank { background: var(--blue-dim); color: var(--blue); }
-    .tag-heal { background: var(--green-dim); color: var(--green); }
-    .tag-dps  { background: var(--coral-dim); color: var(--coral); }
-
-    .char-summary {
-      font-size: 0.8125rem;
-      color: var(--text-secondary);
-      border-top: 1px solid var(--border);
-      padding-top: 0.75rem;
-      min-height: 1.5rem;
-    }
-    .char-summary strong { color: var(--text-primary); font-weight: 500; }
-
-    /* ── Cores bar ── */
-    .cores-input-row { margin-bottom: 0.75rem; }
-    .cores-input-row label {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      font-weight: 500;
-      display: block;
-      margin-bottom: 0.35rem;
-    }
-    input[type=number] {
-      background: var(--bg-raised);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-primary);
-      font-family: var(--font);
-      font-size: 1.1rem;
-      padding: 6px 10px;
-      width: 90px;
-      outline: none;
-      transition: border-color 0.12s;
-    }
-    input[type=number]:focus { border-color: var(--purple); }
-    input[type=number]::-webkit-inner-spin-button { opacity: 0.4; }
-
-    .cores-summary {
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-      flex-wrap: wrap;
-      border-top: 1px solid var(--border);
-      padding-top: 0.75rem;
-      margin: 0.75rem 0 0.5rem;
-    }
-    .summary-block .val { font-size: 1.5rem; font-weight: 600; }
-    .summary-block .lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-    .val-total  { color: var(--text-primary); }
-    .val-remain { color: var(--teal); }
-    .sum-divider { width: 1px; height: 36px; background: var(--border); }
-
-    .cores-display { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 0.75rem; }
-    .core-orb {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; font-weight: 600;
-    }
-    .core-orb.avail { border: 1.5px solid var(--purple-dim); background: rgba(127,111,255,0.1); color: var(--purple); }
-    .core-orb.used  { background: var(--purple-dim); border: 1.5px solid var(--purple); color: #c8c0ff; }
-
-    /* ── Activity tabs ── */
-    .act-tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 0.75rem; }
-    .act-tab {
-      padding: 7px 16px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      background: var(--bg-raised);
-      font-size: 0.8125rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.12s;
-      font-family: var(--font);
-    }
-    .act-tab:hover { border-color: var(--border-mid); color: var(--text-primary); }
-    .act-tab.active-raid  { background: rgba(212,96,96,0.12);  border-color: var(--coral);  color: var(--coral); }
-    .act-tab.active-mp    { background: rgba(90,159,255,0.12); border-color: var(--blue);   color: var(--blue); }
-    .act-tab.active-delve { background: rgba(60,191,144,0.12); border-color: var(--teal);   color: var(--teal); }
-    .act-tab.active-prey  { background: var(--purple-glow);    border-color: var(--purple); color: var(--purple); }
-
-    /* ── Activity sub-cards ── */
-    .content-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-      gap: 8px;
-    }
-    .content-card {
-      background: var(--bg-raised);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 11px 12px 10px;
-      cursor: pointer;
-      position: relative;
-      transition: border-color 0.12s, background 0.12s;
-    }
-    .content-card:hover { background: var(--bg-hover); border-color: var(--border-mid); }
-    .content-card.selected { border-width: 1.5px; }
-    .content-card .cname   { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
-    .content-card .cdetail { font-size: 0.7rem; color: var(--text-muted); line-height: 1.5; }
-    .content-card .ccost   { position: absolute; top: 9px; right: 10px; font-size: 0.7rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; }
-    .track-badge { display: inline-block; font-size: 0.65rem; padding: 2px 7px; border-radius: 99px; margin-top: 5px; font-weight: 600; }
-
-    .raid-card  .ccost { background: rgba(212,96,96,0.15);  color: var(--coral); }
-    .raid-card.selected { border-color: var(--coral); background: rgba(212,96,96,0.07); }
-    .mp-card    .ccost { background: rgba(90,159,255,0.15); color: var(--blue); }
-    .mp-card.selected   { border-color: var(--blue);  background: rgba(90,159,255,0.07); }
-    .delve-card .ccost { background: rgba(60,191,144,0.15); color: var(--teal); }
-    .delve-card.selected{ border-color: var(--teal);  background: rgba(60,191,144,0.07); }
-    .prey-card  .ccost { background: var(--purple-glow); color: var(--purple); }
-    .prey-card.selected { border-color: var(--purple); background: var(--purple-glow); }
-
-    .track-champ { background: rgba(90,159,255,0.12);  color: var(--blue); }
-    .track-hero  { background: rgba(90,191,114,0.12);  color: var(--green); }
-    .track-myth  { background: rgba(127,111,255,0.15); color: var(--purple); }
-    .track-vet   { background: rgba(155,148,196,0.12); color: var(--text-secondary); }
-
-    /* ── Loot pool ── */
-    .pool-header { display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; flex-wrap: wrap; }
-    .pool-title  { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
-    .obtained-badge { font-size: 0.7rem; color: var(--green); background: var(--green-dim); padding: 2px 8px; border-radius: 99px; font-weight: 600; }
-    .filtered-badge { font-size: 0.7rem; color: var(--purple); background: var(--purple-glow); padding: 2px 8px; border-radius: 99px; font-weight: 600; border: 1px solid var(--border); }
-
-    .loot-pool {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 0.875rem 1rem;
-      margin-bottom: 1.5rem;
-      min-height: 80px;
-    }
-    .loot-pool-empty {
-      color: var(--text-muted);
-      font-size: 0.8125rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 60px;
-    }
-
-    .item-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.1s;
-      border-radius: 4px;
-    }
-    .item-row:last-child { border-bottom: none; }
-    .item-row:hover .item-name:not(.obtained-name) { color: var(--purple); }
-
-    .item-slot {
-      font-size: 0.7rem;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-weight: 600;
-      min-width: 64px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .item-name { font-size: 0.8125rem; color: var(--text-primary); flex: 1; transition: color 0.1s; }
-    .obtained-name { text-decoration: line-through; color: var(--text-muted) !important; }
-
-    .item-status { font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; font-weight: 600; white-space: nowrap; }
-    .status-obtained { background: var(--green-dim);  color: var(--green); }
-    .status-priority { background: var(--amber-dim);  color: var(--amber); }
-
-    .armor-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; color: var(--text-muted); border: 1px solid var(--border); white-space: nowrap; }
-
-    /* slot colours */
-    .slot-trinket  { background: rgba(212,150,58,0.15);  color: var(--amber); }
-    .slot-ring     { background: rgba(127,111,255,0.15); color: var(--purple); }
-    .slot-weapon   { background: rgba(212,96,96,0.15);   color: var(--coral); }
-    .slot-neck     { background: rgba(60,191,144,0.15);  color: var(--teal); }
-    .slot-back     { background: rgba(60,191,144,0.15);  color: var(--teal); }
-    .slot-armor    { background: rgba(90,159,255,0.12);  color: var(--blue); }
-    .slot-default  { background: rgba(155,148,196,0.1);  color: var(--text-secondary); }
-
-    /* ── Buttons ── */
-    .btn-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .roll-btn {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 22px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--purple);
-      background: rgba(127,111,255,0.1);
-      color: var(--purple);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.12s;
-      font-family: var(--font);
-    }
-    .roll-btn:hover:not(:disabled) { background: rgba(127,111,255,0.2); }
-    .roll-btn:disabled { opacity: 0.35; cursor: default; }
-    .roll-btn:active:not(:disabled) { transform: scale(0.98); }
-    .orb-icon { width: 14px; height: 14px; border-radius: 50%; background: var(--purple); flex-shrink: 0; }
-
-    .reset-btn {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      background: none;
-      border: none;
-      cursor: pointer;
-      text-decoration: underline;
-      font-family: var(--font);
-    }
-    .reset-btn:hover { color: var(--text-secondary); }
-
-    /* ── History ── */
-    .history-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 7px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.8125rem;
-    }
-    .history-row:last-child { border-bottom: none; }
-    .history-idx { color: var(--text-muted); min-width: 20px; }
-    .history-act { flex: 1; color: var(--text-primary); }
-    .history-cost { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--purple-glow); color: var(--purple); border: 1px solid var(--border); }
-
-    /* ── Footer ── */
-    .site-footer {
-      text-align: center;
-      padding: 1.5rem 0 2rem;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      border-top: 1px solid var(--border);
-      margin-top: 2rem;
-    }
-    .site-footer a { color: var(--text-muted); }
-
-    /* ── Responsive ── */
-    @media (max-width: 600px) {
-      .site-header h1 { font-size: 1.4rem; }
-      .class-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
-      .content-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-    }
+    /* rec */
+    .rlst{display:flex;flex-direction:column;gap:8px;margin-top:.75rem}
+    .ritem{background:var(--raised);border:1px solid var(--bdr);border-radius:var(--rm);padding:10px 14px;display:flex;align-items:center;gap:12px;transition:border-color .12s}
+    .rec-wrap .ritem{border-radius:var(--rm) var(--rm) 0 0;border-bottom:none}
+    .rrank{font-size:1rem;font-weight:700;color:var(--muted);min-width:22px;text-align:center}
+    .rrank.gold{color:var(--amber)}
+    .rinfo{flex:1}
+    .rnm{font-size:.875rem;font-weight:600;color:var(--txt)}
+    .rdet{font-size:.72rem;color:var(--txt2);margin-top:1px}
+    .rec-cost{font-size:.63rem;padding:2px 8px;border-radius:99px;background:var(--pglow);color:var(--purple);border:1px solid var(--bdr);white-space:nowrap;flex-shrink:0}
+    .rec-wrap{margin-bottom:1rem}
+    .rec-pool{background:var(--raised);border:1px solid var(--bdr);border-top:none;border-radius:0 0 var(--rm) var(--rm);padding:.25rem .875rem .5rem}
+    .rec-hdr-open{border-radius:var(--rm) var(--rm) 0 0 !important;border-bottom-color:transparent !important}
+    .rempty{font-size:.8rem;color:var(--muted);padding:.75rem 0;text-align:center}
+    
+    .rbtn{font-size:.78rem;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:var(--font)}
+    .rbtn:hover{color:var(--txt2)}
+    .hrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:.8rem}
+    .hrow:last-child{border-bottom:none}
+    .hcost{font-size:.68rem;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--pglow);color:var(--purple);border:1px solid var(--bdr)}
+    .ftr{text-align:center;padding:1.5rem 0 2rem;font-size:.72rem;color:var(--muted);border-top:1px solid var(--bdr);margin-top:2rem}
+    @media(max-width:600px){.hdr h1{font-size:1.4rem}.cgrid{grid-template-columns:repeat(auto-fill,minmax(68px,1fr))}}
   </style>
 </head>
 <body>
+<header class="hdr">
+  <div class="badge">Midnight Season 1 · Patch 12.0.5</div>
+  <h1>🔮 <span>Voidforge</span> Planner</h1>
+  <p>Nebulous Voidcore bonus roll planner — WoW Midnight Season 1</p>
+</header>
+<main class="wrap">
 
-  <header class="site-header">
-    <div class="season-badge">Midnight Season 1 · Patch 12.0.5</div>
-    <h1>🔮 <span>Voidforge</span> Planner</h1>
-    <p>Nebulous Voidcore bonus roll tracker for WoW Midnight Season 1</p>
-  </header>
-
-  <main class="container">
-
-    <div class="tip-box">
-      Raid bosses cost <strong>2 cores</strong>. All other activities cost <strong>1 core</strong>. Only <strong>Bountiful Delves</strong> and <strong>Nightmare Prey Hunts</strong> are eligible for Voidcore rolls — these have separate loot pools. Extra cores can be purchased from Vaultkeeper Elysa with Thalassian Tokens of Merit.
-    </div>
-
-    <!-- ── Character ── -->
-    <div class="section-label">Your character</div>
+  <!-- Step 1 -->
+  <div class="step">
+    <div class="step-hdr"><div class="step-n" id="s1n">1</div><div class="step-title">Your Character</div></div>
     <div class="card">
-      <div class="class-grid" id="classGrid"></div>
-      <div class="spec-row" id="specRow"></div>
-      <div class="char-summary" id="charSummary">No class selected — loot pool will show all items.</div>
+      <div class="cgrid" id="cgrid"></div>
+      <div class="srow" id="srow"></div>
+      <div class="csum" id="csum">Select a class and spec to begin.</div>
     </div>
+  </div>
 
-    <!-- ── Voidcores ── -->
-    <div class="section-label">Nebulous Voidcores available</div>
-    <div class="card">
-      <div class="cores-input-row">
-        <label for="coreInput">How many Voidcores do you have?</label>
-        <input type="number" id="coreInput" min="0" max="99" value="2">
+  <!-- Step 2 -->
+  <div class="step">
+    <div class="step-hdr"><div class="step-n" id="s2n">2</div><div class="step-title">Current Gear</div></div>
+    <div class="card locked" id="gcard">
+      <div class="tip">Set the <strong>gear track</strong> for each slot. Leave as <strong>None</strong> if the slot is empty or the gear is Adventure track or lower.</div>
+      <div class="ggrid" id="ggrid"></div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step">
+    <div class="step-hdr"><div class="step-n" id="s3n">3</div><div class="step-title">Select Activities &amp; Track Rolls</div></div>
+    <div class="card locked" id="acard">
+      <div class="tip">Select all content you can do. Click <strong>✓</strong> on items you've already rolled on this season, or <strong>🚫</strong> to banish items you don't want recommended.</div>
+      <div class="atabs">
+        <button class="atab" data-g="raid" onclick="actGroup('raid')">Raid</button>
+        <button class="atab" data-g="mp" onclick="actGroup('mp')">Mythic+</button>
+        <button class="atab atab-disabled" disabled title="Loot data coming soon">Bountiful Delve</button>
+        <button class="atab atab-disabled" disabled title="Loot data coming soon">Prey Hunt</button>
       </div>
-      <div class="cores-summary">
-        <div class="summary-block"><div class="val val-total" id="totalVal">2</div><div class="lbl">Total</div></div>
-        <div class="sum-divider"></div>
-        <div class="summary-block"><div class="val val-remain" id="remainVal">2</div><div class="lbl">Remaining</div></div>
+      <div class="apanel" id="apanel"></div>
+      <div class="pools" id="pools"></div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step">
+    <div class="step-hdr"><div class="step-n" id="s4n">4</div><div class="step-title">Recommendation</div></div>
+    <div class="card locked" id="rcard">
+      <div style="font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem">Recommended next roll</div>
+      <div class="rlst" id="rlst"><div class="rempty">Select activities above to see recommendations.</div></div>
+      <div style="margin-top:1rem">
+        <button class="rbtn" onclick="resetAll()">Reset all</button>
       </div>
-      <div class="cores-display" id="coresDisplay"></div>
     </div>
+  </div>
 
-    <!-- ── Activity ── -->
-    <div class="section-label">Choose activity</div>
-    <div class="act-tabs">
-      <button class="act-tab" data-group="raid"  onclick="switchGroup('raid')">Raid</button>
-      <button class="act-tab" data-group="mp"    onclick="switchGroup('mp')">Mythic+</button>
-      <button class="act-tab" data-group="delve" onclick="switchGroup('delve')">Bountiful Delve</button>
-      <button class="act-tab" data-group="prey"  onclick="switchGroup('prey')">Prey Hunt</button>
-    </div>
-    <div class="card" id="actPanel" style="min-height:60px;"></div>
-
-    <!-- ── Loot pool ── -->
-    <div class="pool-header">
-      <span class="pool-title" id="poolTitle">Select an activity to see the loot pool</span>
-      <span class="obtained-badge" id="obtainedBadge" style="display:none"></span>
-      <span class="filtered-badge" id="filteredBadge" style="display:none"></span>
-    </div>
-    <div class="loot-pool" id="lootPool">
-      <div class="loot-pool-empty">← Pick an activity above to plan your roll</div>
-    </div>
-
-    <div class="btn-row" style="margin-bottom:2rem;">
-      <button class="roll-btn" id="rollBtn" disabled onclick="spendCore()">
-        <span class="orb-icon"></span> Spend Voidcore
-      </button>
-      <button class="reset-btn" onclick="resetAll()">Reset all</button>
-    </div>
-
-    <div id="historyWrap" style="display:none;">
-      <div class="section-label" style="margin-bottom:0.5rem;">Rolls this session</div>
-      <div class="card" id="historyList"></div>
-    </div>
-
-  </main>
-
-  <footer class="site-footer">
-    Voidforge Planner · WoW Midnight Season 1 · Loot tables are placeholder pending full datamining
-  </footer>
-
+</main>
+<footer class="ftr">Nebulous Voidforge Planner · WoW Midnight Season 1 · Created by Xarielle-Proudmoore</footer>
 <script>
-// ── Data ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════
+const TIER_SLOTS=new Set(['Head','Shoulder','Chest','Hands','Legs']);
 
-const CLASSES = [
-  {name:"Death Knight",  icon:"💀", activeBorder:"#d46060", activeBg:"rgba(212,96,96,0.1)",
-   specs:[{name:"Blood",role:"tank"},{name:"Frost",role:"dps"},{name:"Unholy",role:"dps"}], armor:"plate"},
-  {name:"Demon Hunter",  icon:"👁",  activeBorder:"#b060d4", activeBg:"rgba(176,96,212,0.1)",
-   specs:[{name:"Havoc",role:"dps"},{name:"Vengeance",role:"tank"},{name:"Devourer",role:"dps"}], armor:"leather"},
-  {name:"Druid",         icon:"🌙", activeBorder:"#d4963a", activeBg:"rgba(212,150,58,0.1)",
-   specs:[{name:"Balance",role:"dps"},{name:"Feral",role:"dps"},{name:"Guardian",role:"tank"},{name:"Restoration",role:"heal"}], armor:"leather"},
-  {name:"Evoker",        icon:"🐉", activeBorder:"#3cbf90", activeBg:"rgba(60,191,144,0.1)",
-   specs:[{name:"Devastation",role:"dps"},{name:"Preservation",role:"heal"},{name:"Augmentation",role:"dps"}], armor:"mail"},
-  {name:"Hunter",        icon:"🏹", activeBorder:"#90c43c", activeBg:"rgba(144,196,60,0.1)",
-   specs:[{name:"Beast Mastery",role:"dps"},{name:"Marksmanship",role:"dps"},{name:"Survival",role:"dps"}], armor:"mail"},
-  {name:"Mage",          icon:"🔮", activeBorder:"#5a9fff", activeBg:"rgba(90,159,255,0.1)",
-   specs:[{name:"Arcane",role:"dps"},{name:"Fire",role:"dps"},{name:"Frost",role:"dps"}], armor:"cloth"},
-  {name:"Monk",          icon:"🥋", activeBorder:"#3cbf90", activeBg:"rgba(60,191,144,0.1)",
-   specs:[{name:"Brewmaster",role:"tank"},{name:"Mistweaver",role:"heal"},{name:"Windwalker",role:"dps"}], armor:"leather"},
-  {name:"Paladin",       icon:"⚔️", activeBorder:"#d460a0", activeBg:"rgba(212,96,160,0.1)",
-   specs:[{name:"Holy",role:"heal"},{name:"Protection",role:"tank"},{name:"Retribution",role:"dps"}], armor:"plate"},
-  {name:"Priest",        icon:"✨", activeBorder:"#9b94c4", activeBg:"rgba(155,148,196,0.1)",
-   specs:[{name:"Discipline",role:"heal"},{name:"Holy",role:"heal"},{name:"Shadow",role:"dps"}], armor:"cloth"},
-  {name:"Rogue",         icon:"🗡️", activeBorder:"#d4c03a", activeBg:"rgba(212,192,58,0.1)",
-   specs:[{name:"Assassination",role:"dps"},{name:"Outlaw",role:"dps"},{name:"Subtlety",role:"dps"}], armor:"leather"},
-  {name:"Shaman",        icon:"⚡", activeBorder:"#5a9fff", activeBg:"rgba(90,159,255,0.1)",
-   specs:[{name:"Elemental",role:"dps"},{name:"Enhancement",role:"dps"},{name:"Restoration",role:"heal"}], armor:"mail"},
-  {name:"Warlock",       icon:"🔥", activeBorder:"#7f6fff", activeBg:"rgba(127,111,255,0.12)",
-   specs:[{name:"Affliction",role:"dps"},{name:"Demonology",role:"dps"},{name:"Destruction",role:"dps"}], armor:"cloth"},
-  {name:"Warrior",       icon:"🛡️", activeBorder:"#d4963a", activeBg:"rgba(212,150,58,0.1)",
-   specs:[{name:"Arms",role:"dps"},{name:"Fury",role:"dps"},{name:"Protection",role:"tank"}], armor:"plate"},
+const TRACKS=['none','veteran','champion','hero','myth'];
+const TVAL={none:0,veteran:1,champion:2,hero:3,myth:4};
+const TLBL={none:'None',veteran:'Veteran',champion:'Champion',hero:'Hero',myth:'Myth'};
+
+const GEAR_SLOTS=[
+  'Head','Neck','Shoulder','Back','Chest','Wrist',
+  'Hands','Waist','Legs','Feet','Ring 1','Ring 2',
+  'Trinket 1','Trinket 2','Main Hand','Off Hand'
 ];
 
-const ACTIVITY_GROUPS = {
-  raid: [
-    {key:"Voidspire (Normal)", label:"Normal",  cost:2, cardClass:"raid-card",  track:"track-champ", trackLabel:"Champion track", detail:"Bosses 1–6, ilvl 246–256"},
-    {key:"Voidspire (Heroic)", label:"Heroic",  cost:2, cardClass:"raid-card",  track:"track-hero",  trackLabel:"Hero track",     detail:"Bosses 1–6, ilvl 259–269"},
-    {key:"Voidspire (Mythic)", label:"Mythic",  cost:2, cardClass:"raid-card",  track:"track-myth",  trackLabel:"Myth track",     detail:"Bosses 1–6, ilvl 272–282"},
+const RAID_DIFFS=[
+  {key:'normal',label:'Normal',track:'champion'},
+  {key:'heroic',label:'Heroic',track:'hero'},
+  {key:'mythic',label:'Mythic',track:'myth'}
+];
+
+const ACT_GROUPS={
+  mp:[],  // M+ uses dungeon cards — see DUNGEONS + MP_BRACKETS
+  delve:[
+    {key:'Bountiful Delve T1–4', label:'Tier 1–4',  cost:1,track:'veteran', tl:'Veteran track',  det:'Delve levels 1–4'},
+    {key:'Bountiful Delve T5–7', label:'Tier 5–7',  cost:1,track:'champion',tl:'Champion track', det:'Delve levels 5–7'},
+    {key:'Bountiful Delve T8–11',label:'Tier 8–11', cost:1,track:'hero',    tl:'Hero track',     det:'Delve levels 8–11'},
   ],
-  mp: [
-    {key:"Mythic 0",    label:"Mythic 0",  cost:1, cardClass:"mp-card", track:"track-champ", trackLabel:"Champion vault", detail:"End-of-run 246, vault 256"},
-    {key:"M+ +2 to +5", label:"+2 to +5", cost:1, cardClass:"mp-card", track:"track-hero",  trackLabel:"Hero vault",     detail:"End-of-run 250–256, vault 259–263"},
-    {key:"M+ +6 to +9", label:"+6 to +9", cost:1, cardClass:"mp-card", track:"track-hero",  trackLabel:"Hero vault",     detail:"End-of-run 259–263, vault 266–269"},
-    {key:"M+ +10+",     label:"+10+",     cost:1, cardClass:"mp-card", track:"track-myth",  trackLabel:"Myth vault",     detail:"End-of-run 266 (Hero 3/6), vault 272"},
+  prey:[{key:'Prey Hunt (Nightmare)',label:'Nightmare',cost:1,track:'hero',tl:'Hero track',det:'Voidcore eligible'}],
+};
+
+// ═══════════════════════════════════════════════════════
+// CLASSES & SPECS
+// ═══════════════════════════════════════════════════════
+const CLASSES=[
+  {name:'Death Knight',icon:'💀',ab:'#E24B4A',bg:'rgba(226,75,74,.1)',armor:'plate',specs:[
+    {name:'Blood',   role:'tank',cr:'tank',  stat:'str',wt:['2h_axe','2h_mace','2h_sword','polearm']},
+    {name:'Frost',   role:'dps', cr:'melee', stat:'str',wt:['1h_axe','1h_mace','1h_sword','2h_axe','2h_mace','2h_sword','polearm']},
+    {name:'Unholy',  role:'dps', cr:'melee', stat:'str',wt:['2h_axe','2h_mace','2h_sword','polearm']},
+  ]},
+  {name:'Demon Hunter',icon:'😈',ab:'#A330C9',bg:'rgba(163,48,201,.1)',armor:'leather',specs:[
+    {name:'Havoc',     role:'dps', cr:'melee',  stat:'agi',wt:['warglaive','fist','1h_axe','1h_sword']},
+    {name:'Vengeance', role:'tank',cr:'tank',   stat:'agi',wt:['warglaive','fist','1h_axe','1h_sword']},
+    {name:'Devourer',  role:'dps', cr:'ranged', stat:'int',wt:['warglaive','fist','1h_axe','1h_sword','offhand']},
+  ]},
+  {name:'Druid',icon:'🌙',ab:'#FF7C0A',bg:'rgba(255,124,10,.1)',armor:'leather',specs:[
+    {name:'Balance',     role:'dps', cr:'ranged', stat:'int',wt:['dagger','1h_mace','staff','offhand']},
+    {name:'Feral',       role:'dps', cr:'melee',  stat:'agi',wt:['dagger','fist','1h_mace','staff','polearm']},
+    {name:'Guardian',    role:'tank',cr:'tank',   stat:'agi',wt:['dagger','fist','1h_mace','staff','polearm']},
+    {name:'Restoration', role:'heal',cr:'healer', stat:'int',wt:['dagger','1h_mace','staff','offhand']},
+  ]},
+  {name:'Evoker',icon:'🐉',ab:'#33937F',bg:'rgba(51,147,127,.1)',armor:'mail',specs:[
+    {name:'Devastation', role:'dps', cr:'ranged', stat:'int',wt:['dagger','fist','1h_axe','1h_mace','1h_sword','offhand']},
+    {name:'Preservation',role:'heal',cr:'healer', stat:'int',wt:['dagger','fist','1h_axe','1h_mace','1h_sword','offhand']},
+    {name:'Augmentation',role:'dps', cr:'ranged', stat:'int',wt:['dagger','fist','1h_axe','1h_mace','1h_sword','offhand']},
+  ]},
+  {name:'Hunter',icon:'🏹',ab:'#8DC63F',bg:'rgba(141,198,63,.1)',armor:'mail',specs:[
+    {name:'Beast Mastery',  role:'dps',cr:'ranged',stat:'agi',wt:['bow','gun','crossbow']},
+    {name:'Marksmanship',   role:'dps',cr:'ranged',stat:'agi',wt:['bow','gun','crossbow']},
+    {name:'Survival',       role:'dps',cr:'melee', stat:'agi',wt:['polearm','staff','1h_axe','1h_sword']},
+  ]},
+  {name:'Mage',icon:'🔮',ab:'#378ADD',bg:'rgba(55,138,221,.1)',armor:'cloth',specs:[
+    {name:'Arcane',role:'dps',cr:'ranged',stat:'int',wt:['dagger','1h_sword','staff','offhand','wand']},
+    {name:'Fire',  role:'dps',cr:'ranged',stat:'int',wt:['dagger','1h_sword','staff','offhand','wand']},
+    {name:'Frost', role:'dps',cr:'ranged',stat:'int',wt:['dagger','1h_sword','staff','offhand','wand']},
+  ]},
+  {name:'Monk',icon:'🥋',ab:'#1D9E75',bg:'rgba(29,158,117,.1)',armor:'leather',specs:[
+    {name:'Brewmaster', role:'tank',cr:'tank',   stat:'agi',wt:['fist','1h_axe','1h_mace','1h_sword','polearm','staff']},
+    {name:'Mistweaver', role:'heal',cr:'healer', stat:'int',wt:['1h_axe','1h_mace','1h_sword','staff','offhand']},
+    {name:'Windwalker', role:'dps', cr:'melee',  stat:'agi',wt:['fist','1h_axe','1h_mace','1h_sword','polearm','staff']},
+  ]},
+  {name:'Paladin',icon:'🔨',ab:'#D4537E',bg:'rgba(212,83,126,.1)',armor:'plate',specs:[
+    {name:'Holy',       role:'heal',cr:'healer',stat:'int',wt:['1h_axe','1h_mace','1h_sword','shield','offhand']},
+    {name:'Protection', role:'tank',cr:'tank',  stat:'str',wt:['1h_axe','1h_mace','1h_sword','shield']},
+    {name:'Retribution',role:'dps', cr:'melee', stat:'str',wt:['2h_axe','2h_mace','2h_sword','polearm']},
+  ]},
+  {name:'Priest',icon:'✨',ab:'#888780',bg:'rgba(136,135,128,.1)',armor:'cloth',specs:[
+    {name:'Discipline',role:'heal',cr:'healer',stat:'int',wt:['dagger','1h_mace','staff','offhand','wand']},
+    {name:'Holy',      role:'heal',cr:'healer',stat:'int',wt:['dagger','1h_mace','staff','offhand','wand']},
+    {name:'Shadow',    role:'dps', cr:'ranged', stat:'int',wt:['dagger','1h_mace','staff','offhand','wand']},
+  ]},
+  {name:'Rogue',icon:'🗡️',ab:'#BA7517',bg:'rgba(186,117,23,.1)',armor:'leather',specs:[
+    {name:'Assassination',role:'dps',cr:'melee',stat:'agi',wt:['dagger']},
+    {name:'Outlaw',       role:'dps',cr:'melee',stat:'agi',wt:['1h_axe','1h_mace','1h_sword','fist']},
+    {name:'Subtlety',     role:'dps',cr:'melee',stat:'agi',wt:['dagger']},
+  ]},
+  {name:'Shaman',icon:'⚡',ab:'#378ADD',bg:'rgba(55,138,221,.1)',armor:'mail',specs:[
+    {name:'Elemental',   role:'dps', cr:'ranged', stat:'int',wt:['dagger','fist','1h_axe','1h_mace','staff','shield','offhand']},
+    {name:'Enhancement', role:'dps', cr:'melee',  stat:'agi',wt:['fist','1h_axe','1h_mace']},
+    {name:'Restoration', role:'heal',cr:'healer', stat:'int',wt:['dagger','fist','1h_axe','1h_mace','staff','shield','offhand']},
+  ]},
+  {name:'Warlock',icon:'🔥',ab:'#7F77DD',bg:'rgba(127,119,221,.1)',armor:'cloth',specs:[
+    {name:'Affliction', role:'dps',cr:'ranged',stat:'int',wt:['dagger','1h_sword','staff','offhand','wand']},
+    {name:'Demonology', role:'dps',cr:'ranged',stat:'int',wt:['dagger','1h_sword','staff','offhand','wand']},
+    {name:'Destruction',role:'dps',cr:'ranged',stat:'int',wt:['dagger','1h_sword','staff','offhand','wand']},
+  ]},
+  {name:'Warrior',icon:'⚔️',ab:'#BA7517',bg:'rgba(186,117,23,.1)',armor:'plate',specs:[
+    {name:'Arms',      role:'dps', cr:'melee',stat:'str',wt:['2h_axe','2h_mace','2h_sword','polearm']},
+    {name:'Fury',      role:'dps', cr:'melee',stat:'str',wt:['1h_axe','1h_mace','1h_sword','2h_axe','2h_mace','2h_sword','polearm']},
+    {name:'Protection',role:'tank',cr:'tank', stat:'str',wt:['1h_axe','1h_mace','1h_sword','shield']},
+  ]},
+];
+
+// ═══════════════════════════════════════════════════════
+// WEAPONS
+// ═══════════════════════════════════════════════════════
+const WEAPONS={
+  'Weight of Command':              {wtype:'1h_mace',  stat:'int', cls:['Paladin','Druid','Priest','Shaman','Monk','Evoker']},
+  'Sunstrike Rifle':                {wtype:'gun',      stat:'agi', cls:['Hunter']},
+  'Bulwark of Noble Resolve':       {wtype:'shield',   stat:'any', cls:['Paladin','Warrior','Shaman']},
+  'Hungering Victory':              {wtype:'dagger',   stat:'agi', cls:['Rogue'],             sr:{Rogue:['Assassination','Subtlety']}},
+  'Inescapable Reach':              {wtype:'polearm',  stat:'agi', cls:['Druid'],             sr:{Druid:['Feral','Guardian']}},
+  'Grimoire of the Eternal Light':  {wtype:'offhand',  stat:'int', cls:['Mage','Druid','Priest','Shaman','Warlock','Monk','Evoker']},
+  "Tormentor's Bladed Fists":       {wtype:'fist',     stat:'agi', cls:['Rogue','Shaman','Monk','Demon Hunter'], sr:{Rogue:['Outlaw'],Shaman:['Enhancement'],Monk:['Brewmaster','Windwalker'],'Demon Hunter':['Havoc','Vengeance']}},
+  'Blade of the Final Twilight':    {wtype:'1h_sword', stat:'str', cls:['Warrior','Death Knight'],               sr:{Warrior:['Fury','Protection'],'Death Knight':['Frost']}},
+  "Clutchmates' Caress":            {wtype:'1h_mace',  stat:'agi', cls:['Rogue','Shaman','Monk'],               sr:{Rogue:['Outlaw'],Shaman:['Enhancement'],Monk:['Brewmaster','Windwalker']}},
+  'Emblazoned Sunglaive':           {wtype:'warglaive',stat:'any', cls:['Demon Hunter']},
+  'Blade of the Blind Verdict':     {wtype:'1h_sword', stat:'int', cls:['Mage','Paladin','Warlock','Monk','Evoker','Demon Hunter'], sr:{Mage:['Arcane','Fire','Frost'],Paladin:['Holy'],Warlock:['Affliction','Demonology','Destruction'],Monk:['Mistweaver'],Evoker:['Devastation','Preservation','Augmentation'],'Demon Hunter':['Devourer']}},
+  "Bellamy's Final Judgement":      {wtype:'2h_mace',  stat:'str', cls:['Paladin','Warrior','Death Knight'],    sr:{Paladin:['Retribution'],Warrior:['Arms','Fury'],'Death Knight':['Blood','Frost','Unholy']}},
+  "Turalyon's False Echo":          {wtype:'1h_mace',  stat:'str', cls:['Warrior','Death Knight'],              sr:{Warrior:['Fury','Protection'],'Death Knight':['Frost']}},
+  "Arator's Swift Remembrance":     {wtype:'1h_sword', stat:'agi', cls:['Rogue','Monk','Demon Hunter'],         sr:{Rogue:['Outlaw'],Monk:['Brewmaster','Windwalker'],'Demon Hunter':['Havoc','Vengeance']}},
+  "Ranger-Captain's Lethal Recurve":{wtype:'bow',      stat:'agi', cls:['Hunter'],                              sr:{Hunter:['Beast Mastery','Marksmanship']}},
+  'Alnscorned Spire':               {wtype:'staff',    stat:'agi', cls:['Druid','Hunter','Monk'],               sr:{Druid:['Feral','Guardian'],Hunter:['Survival'],Monk:['Brewmaster','Windwalker']}},
+  'Tome of Alnscorned Regret':      {wtype:'offhand',  stat:'int', cls:['Mage','Druid','Priest','Shaman','Warlock','Monk','Evoker']},
+  'Shadowfang Glaive':              {wtype:'warglaive',stat:'agi', cls:['Demon Hunter'],                        sr:{'Demon Hunter':['Havoc','Vengeance']}},
+  "Belo'melorn, the Shattered Talon":{wtype:'dagger',  stat:'int', cls:['Druid','Evoker','Mage','Monk','Paladin','Priest','Shaman','Warlock'], sr:{Druid:['Balance','Restoration'],Evoker:['Devastation','Preservation','Augmentation'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Paladin:['Holy'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction']}},
+  "Belo'ren's Swift Talon":         {wtype:'dagger',   stat:'agi', cls:['Rogue'],                              sr:{Rogue:['Assassination','Subtlety']}},
+  'Thalassian Dawnguard':           {wtype:'shield',   stat:'any', cls:['Paladin','Warrior','Shaman'],          sr:{Paladin:['Holy','Protection'],Warrior:['Protection'],Shaman:['Elemental','Restoration']}},
+  'Lightless Lament':               {wtype:'warglaive',stat:'any', cls:['Demon Hunter']},
+  "Alah'endal, the Dawnsong":       {wtype:'2h_axe',   stat:'str', cls:['Paladin','Warrior','Death Knight'],    sr:{Paladin:['Retribution'],Warrior:['Arms','Fury'],'Death Knight':['Blood','Frost','Unholy']}},
+  'Brazier of the Dissonant Dirge': {wtype:'staff',    stat:'int', cls:['Druid','Mage','Monk','Priest','Shaman','Warlock'], sr:{Druid:['Balance','Restoration'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction']}},
+  // ── M+ weapons ──
+  // One-handed
+  'Soulblight Cleaver':   {wtype:'1h_axe',  stat:'agi', sr:{Rogue:['Outlaw'],Shaman:['Enhancement'],Monk:['Brewmaster','Windwalker'],'Demon Hunter':['Havoc','Vengeance']}},
+  'Warworn Cleaver':      {wtype:'1h_axe',  stat:'str', sr:{Paladin:['Protection'],Warrior:['Fury','Protection'],'Death Knight':['Frost']}},
+  'Radiant Slicer':       {wtype:'dagger',  stat:'agi', sr:{Rogue:['Assassination','Subtlety'],Druid:['Feral','Guardian'],Monk:['Brewmaster','Windwalker']}},
+  "Krick's Beetle Stabber":{wtype:'dagger', stat:'agi', sr:{Rogue:['Assassination','Subtlety'],Druid:['Feral','Guardian'],Monk:['Brewmaster','Windwalker']}},
+  'Edge of the Burning Sun':{wtype:'dagger',stat:'agi', sr:{Rogue:['Assassination','Subtlety'],Druid:['Feral','Guardian'],Monk:['Brewmaster','Windwalker']}},
+  'Splitshroud Stinger':  {wtype:'dagger',  stat:'int', sr:{Druid:['Balance','Restoration'],Evoker:['Devastation','Preservation','Augmentation'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Paladin:['Holy'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction'],'Demon Hunter':['Devourer']}},
+  'Ceremonial Hexblade':  {wtype:'dagger',  stat:'int', sr:{Druid:['Balance','Restoration'],Evoker:['Devastation','Preservation','Augmentation'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Paladin:['Holy'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction'],'Demon Hunter':['Devourer']}},
+  "Surgeon's Needle":     {wtype:'dagger',  stat:'int', sr:{Druid:['Balance','Restoration'],Evoker:['Devastation','Preservation','Augmentation'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Paladin:['Holy'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction'],'Demon Hunter':['Devourer']}},
+  "Berserker's Hexclaws": {wtype:'fist',    stat:'agi', sr:{Rogue:['Outlaw'],Shaman:['Enhancement'],Monk:['Brewmaster','Windwalker'],'Demon Hunter':['Havoc','Vengeance']}},
+  'Grips of the Dark Viceroy':{wtype:'fist',stat:'agi', sr:{Rogue:['Outlaw'],Shaman:['Enhancement'],Monk:['Brewmaster','Windwalker'],'Demon Hunter':['Havoc','Vengeance']}},
+  'Blazing Sunclaws':     {wtype:'fist',    stat:'agi', sr:{Rogue:['Outlaw'],Shaman:['Enhancement'],Monk:['Brewmaster','Windwalker'],'Demon Hunter':['Havoc','Vengeance']}},
+  'Arcanic of the High Sage':{wtype:'fist', stat:'int', sr:{Evoker:['Devastation','Preservation','Augmentation'],'Demon Hunter':['Devourer']}},
+  'Dreadflail Bludgeon':  {wtype:'1h_mace', stat:'agi', sr:{Rogue:['Outlaw'],Shaman:['Enhancement'],Monk:['Brewmaster','Windwalker']}},
+  'Malfeasance Mallet':   {wtype:'1h_mace', stat:'str', sr:{Paladin:['Protection'],Warrior:['Fury','Protection'],'Death Knight':['Frost']}},
+  'Scepter of the Endless Night':{wtype:'1h_mace',stat:'str',sr:{Paladin:['Protection'],Warrior:['Fury','Protection'],'Death Knight':['Frost']}},
+  'Excavating Cudgel':    {wtype:'1h_mace', stat:'int', sr:{Druid:['Balance','Restoration'],Evoker:['Devastation','Preservation','Augmentation'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Paladin:['Holy'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction'],'Demon Hunter':['Devourer']}},
+  'Shadowslash Slicer':   {wtype:'1h_sword',stat:'agi', sr:{Rogue:['Outlaw'],Monk:['Brewmaster','Windwalker'],'Demon Hunter':['Havoc','Vengeance']}},
+  'Spellbane Cutlass':    {wtype:'1h_sword',stat:'str', sr:{Paladin:['Protection'],Warrior:['Fury','Protection'],'Death Knight':['Frost']}},
+  'Beakbreaker Scimitar': {wtype:'1h_sword',stat:'str', sr:{Paladin:['Protection'],Warrior:['Fury','Protection'],'Death Knight':['Frost']}},
+  'Spellboon Saber':      {wtype:'1h_sword',stat:'int', sr:{Druid:['Balance','Restoration'],Evoker:['Devastation','Preservation','Augmentation'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Paladin:['Holy'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction'],'Demon Hunter':['Devourer']}},
+  "Skybreaker's Blade":   {wtype:'1h_sword',stat:'int', sr:{Druid:['Balance','Restoration'],Evoker:['Devastation','Preservation','Augmentation'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Paladin:['Holy'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction'],'Demon Hunter':['Devourer']}},
+  'Resolute Runeglaive':  {wtype:'warglaive',stat:'any',sr:{'Demon Hunter':['Havoc','Vengeance','Devourer']}},
+  "Mystakria's Harvester":{wtype:'warglaive',stat:'any',sr:{'Demon Hunter':['Havoc','Vengeance','Devourer']}},
+  "Wand of Saprish's Gaze":{wtype:'wand',  stat:'int', sr:{Mage:['Arcane','Fire','Frost'],Priest:['Discipline','Holy','Shadow'],Warlock:['Affliction','Demonology','Destruction']}},
+  // Two-handed
+  'Whirling Voidcleaver': {wtype:'2h_axe',  stat:'str', sr:{Paladin:['Retribution'],Warrior:['Arms','Fury'],'Death Knight':['Blood','Frost','Unholy']}},
+  'Algeth\'ar Hedgecleaver':{wtype:'2h_axe',stat:'str', sr:{Paladin:['Retribution'],Warrior:['Arms','Fury'],'Death Knight':['Blood','Frost','Unholy']}},
+  "Garfrost's Two-Ton Hammer":{wtype:'2h_mace',stat:'str',sr:{Paladin:['Retribution'],Warrior:['Arms','Fury'],'Death Knight':['Blood','Frost','Unholy']}},
+  "Traitor's Talon":      {wtype:'polearm', stat:'agi', sr:{Druid:['Feral','Guardian'],Hunter:['Survival'],Monk:['Brewmaster','Windwalker']}},
+  'Sunlance of Viryx':    {wtype:'polearm', stat:'agi', sr:{Druid:['Feral','Guardian'],Hunter:['Survival'],Monk:['Brewmaster','Windwalker']}},
+  "Roostwarden's Bough":  {wtype:'staff',   stat:'agi', sr:{Druid:['Feral','Guardian'],Hunter:['Survival'],Monk:['Brewmaster','Windwalker']}},
+  'Obsidian Goaltending Spire':{wtype:'staff',stat:'agi',sr:{Druid:['Feral','Guardian'],Hunter:['Survival'],Monk:['Brewmaster','Windwalker']}},
+  'Corespark Multitool':  {wtype:'staff',   stat:'int', sr:{Druid:['Balance','Restoration'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction']}},
+  'Final Grade':          {wtype:'staff',   stat:'int', sr:{Druid:['Balance','Restoration'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction']}},
+  'Umbral Spire of Zuraal':{wtype:'staff',  stat:'int', sr:{Druid:['Balance','Restoration'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction']}},
+  'Spire of the Furious Construct':{wtype:'staff',stat:'int',sr:{Druid:['Balance','Restoration'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction']}},
+  "Liferipper's Cutlass": {wtype:'2h_sword',stat:'str', sr:{Paladin:['Retribution'],Warrior:['Arms','Fury'],'Death Knight':['Blood','Frost','Unholy']}},
+  'Emberdawn Defender':   {wtype:'2h_sword',stat:'str', sr:{Paladin:['Retribution'],Warrior:['Arms','Fury'],'Death Knight':['Blood','Frost','Unholy']}},
+  'Chakram-Breaker Greatsword':{wtype:'2h_sword',stat:'str',sr:{Paladin:['Retribution'],Warrior:['Arms','Fury'],'Death Knight':['Blood','Frost','Unholy']}},
+  // Ranged
+  "Deceiver's Rotbow":    {wtype:'bow',     stat:'agi', sr:{Hunter:['Beast Mastery','Marksmanship']}},
+  "Hurricane's Heart":    {wtype:'bow',     stat:'agi', sr:{Hunter:['Beast Mastery','Marksmanship']}},
+  "Stormshaper's Crossbow":{wtype:'crossbow',stat:'agi',sr:{Hunter:['Beast Mastery','Marksmanship']}},
+  'Rimebane Rifle':       {wtype:'gun',     stat:'agi', sr:{Hunter:['Beast Mastery','Marksmanship']}},
+  // Off-hand & Shield
+  "Vexamus' Expulsion Rod":{wtype:'offhand',stat:'int', sr:{Druid:['Balance','Restoration'],Evoker:['Devastation','Preservation','Augmentation'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction']}},
+  "Rukhran's Solar Reliquary":{wtype:'offhand',stat:'int',sr:{Druid:['Balance','Restoration'],Evoker:['Devastation','Preservation','Augmentation'],Mage:['Arcane','Fire','Frost'],Monk:['Mistweaver'],Priest:['Discipline','Holy','Shadow'],Shaman:['Elemental','Restoration'],Warlock:['Affliction','Demonology','Destruction']}},
+  'Ward of the Spellbreaker':{wtype:'shield',stat:'any',sr:{Paladin:['Holy','Protection'],Warrior:['Protection'],Shaman:['Elemental','Restoration']}},
+  "Viryx's Indomitable Bulwark":{wtype:'shield',stat:'any',sr:{Paladin:['Holy','Protection'],Warrior:['Protection'],Shaman:['Elemental','Restoration']}},
+};
+
+// ═══════════════════════════════════════════════════════
+// TRINKETS — explicit spec maps
+// ═══════════════════════════════════════════════════════
+const PHYS={
+  'Paladin':['Protection','Retribution'],'Warrior':['Arms','Fury','Protection'],
+  'Druid':['Feral','Guardian'],'Death Knight':['Blood','Frost','Unholy'],
+  'Hunter':['Beast Mastery','Marksmanship','Survival'],
+  'Rogue':['Assassination','Outlaw','Subtlety'],'Shaman':['Enhancement'],
+  'Monk':['Brewmaster','Windwalker'],'Demon Hunter':['Havoc','Vengeance'],
+};
+const CASTER={
+  'Mage':['Arcane','Fire','Frost'],'Paladin':['Holy'],
+  'Druid':['Balance','Restoration'],'Priest':['Discipline','Holy','Shadow'],
+  'Shaman':['Elemental','Restoration'],'Warlock':['Affliction','Demonology','Destruction'],
+  'Monk':['Brewmaster','Mistweaver','Windwalker'],
+  'Evoker':['Devastation','Preservation','Augmentation'],'Demon Hunter':['Devourer'],
+};
+const HEALER={
+  'Druid':['Restoration'],'Evoker':['Preservation'],'Monk':['Mistweaver'],
+  'Paladin':['Holy'],'Priest':['Discipline','Holy'],'Shaman':['Restoration'],
+};
+const TRINKETS={
+  // universal
+  "Locus-Walker's Ribbon":            {type:'universal'},
+  'Gaze of the Alnseer':              {type:'universal'},
+  // physical (str+agi dps + tanks)
+  'Light Company Guidon':             {type:'specmap',map:PHYS},
+  'Heart of Ancient Hunger':          {type:'specmap',map:PHYS},
+  "Ranger-Captain's Iridescent Insignia":{type:'specmap',map:PHYS},
+  'Radiant Plume':                    {type:'specmap',map:PHYS},
+  'Umbral Plume':                     {type:'specmap',map:PHYS},
+  'The Eternal Egg':                  {type:'specmap',map:PHYS},
+  "Undreamt God's Oozing Vestige":    {type:'specmap',map:PHYS},
+  // int / caster
+  'Wraps of Cosmic Madness':          {type:'specmap',map:CASTER},
+  "Vaelgor's Final Stare":            {type:'specmap',map:CASTER},
+  'Litany of Lightblind Wrath':       {type:'specmap',map:CASTER},
+  'Shadow of the Empyrean Requiem':   {type:'specmap',map:CASTER},
+  // healer
+  'Volatile Void Suffuser':           {type:'specmap',map:HEALER},
+  'Light of the Cosmic Crescendo':    {type:'specmap',map:HEALER},
+  // tank
+  'Gloom-Spattered Dreadscale':       {type:'tank'},
+  // ── M+ trinkets ──
+  // universal / primary stat
+  'Heart of Wind':                    {type:'universal'},
+  'Vessel of Tortured Souls':         {type:'universal'},
+  // physical (agi+str)
+  'Jelly Replicator':                 {type:'specmap',map:PHYS},
+  "Latch's Crooked Hook":             {type:'specmap',map:PHYS},
+  "Kroluk's Warbanner":               {type:'specmap',map:PHYS},
+  "Algeth'ar Puzzle Box":             {type:'specmap',map:PHYS},
+  'Void Stalker\'s Contract':         {type:'specmap',map:PHYS},
+  'Solarflare Prism':                 {type:'specmap',map:PHYS},
+  // tank (agi+str tanks only)
+  'Rotting Globule':                  {type:'tank'},
+  'Ampoule of Pure Void':             {type:'tank'},
+  'Solar Core Igniter':               {type:'tank'},
+  // agi+int (all agi specs + all int specs — NOT pure str)
+  'Eye of the Drowning Void':         {type:'agiint'},
+  'Emberwing Feather':                {type:'agiint'},
+  // str only
+  'Mark of Light':                    {type:'str'},
+  'Dragon Games Equipment':           {type:'str'},
+  // int only (all int specs)
+  "Soulcatcher's Charm":              {type:'int'},
+  "Emerald Coach's Whistle":          {type:'specmap',map:HEALER},
+  'Nevermelting Ice Crystal':         {type:'int'},
+  'Reality Breacher':                 {type:'int'},
+  // healer
+  'Refueling Orb':                    {type:'specmap',map:HEALER},
+  'Whisper of the Duskwraith':        {type:'specmap',map:HEALER},
+  "Echo of L'ura":                    {type:'specmap',map:HEALER},
+  'Radiant Sunstone':                 {type:'specmap',map:HEALER},
+};
+
+// ═══════════════════════════════════════════════════════
+// LOOT TABLES
+// ═══════════════════════════════════════════════════════
+const BOSS_LOOT={
+  'Imperator Averzian':[
+    {slot:'Trinket',name:'Light Company Guidon',armor:'any'},
+    {slot:'Weapon',name:'Weight of Command',armor:'any'},
+    {slot:'Weapon',name:'Sunstrike Rifle',armor:'any'},
+    {slot:'Weapon',name:'Bulwark of Noble Resolve',armor:'any'},
+    {slot:'Back',name:"Imperator's Banner",armor:'any'},
+    {slot:'Waist',name:'Endless March Waistwrap',armor:'cloth'},
+    {slot:'Legs',name:'Leggings of the Devouring Advance',armor:'cloth'},
+    {slot:'Head',name:"Devouring Night's Visage",armor:'leather'},
+    {slot:'Feet',name:'Void-Claimed Shinkickers',armor:'leather'},
+    {slot:'Chest',name:'Robes of the Voidbound',armor:'mail'},
+    {slot:'Feet',name:'Sabatons of Obscurement',armor:'mail'},
+    {slot:'Shoulder',name:'Light-Judged Spaulders',armor:'plate'},
+    {slot:'Wrist',name:"Light's March Bracers",armor:'plate'},
   ],
-  delve: [
-    {key:"Bountiful Delve T1–4", label:"Tier 1–4", cost:1, cardClass:"delve-card", track:"track-vet",   trackLabel:"Veteran track",  detail:"End-of-run 220–230, vault 233–243"},
-    {key:"Bountiful Delve T5–6", label:"Tier 5–6", cost:1, cardClass:"delve-card", track:"track-vet",   trackLabel:"Veteran track",  detail:"End-of-run 233–237, vault 246–253"},
-    {key:"Bountiful Delve T7",   label:"Tier 7",   cost:1, cardClass:"delve-card", track:"track-champ", trackLabel:"Champion vault", detail:"End-of-run 246, vault 256"},
-    {key:"Bountiful Delve T8",   label:"Tier 8",   cost:1, cardClass:"delve-card", track:"track-hero",  trackLabel:"Hero vault",     detail:"End-of-run 250, vault 259 (cap)"},
+  'Vorasius':[
+    {slot:'Trinket',name:'Heart of Ancient Hunger',armor:'any'},
+    {slot:'Ring',name:'Signet of the Starved Beast',armor:'any'},
+    {slot:'Weapon',name:'Hungering Victory',armor:'any'},
+    {slot:'Weapon',name:'Inescapable Reach',armor:'any'},
+    {slot:'Weapon',name:'Grimoire of the Eternal Light',armor:'any'},
+    {slot:'Wrist',name:'Voracious Wristwraps',armor:'cloth'},
+    {slot:'Wrist',name:'Void-Skinned Bracers',armor:'leather'},
+    {slot:'Head',name:"Frenzy's Rebuke",armor:'mail'},
+    {slot:'Feet',name:'Parasite Stompers',armor:'plate'},
+    {slot:'Hands',name:'Voidwoven Hungering Nullcore',armor:'cloth',tier:true},
+    {slot:'Hands',name:'Voidcured Hungering Nullcore',armor:'leather',tier:true},
+    {slot:'Hands',name:'Voidcast Hungering Nullcore',armor:'mail',tier:true},
+    {slot:'Hands',name:'Voidforged Hungering Nullcore',armor:'plate',tier:true},
   ],
-  prey: [
-    {key:"Prey Hunt (Nightmare)", label:"Nightmare", cost:1, cardClass:"prey-card", track:"track-hero", trackLabel:"Hero vault", detail:"End-of-run 246, vault 259 · Voidcore eligible"},
+  'Fallen-King Salhadaar':[
+    {slot:'Trinket',name:'Volatile Void Suffuser',armor:'any'},
+    {slot:'Trinket',name:'Wraps of Cosmic Madness',armor:'any'},
+    {slot:'Neck',name:'Ribbon of Coiled Malice',armor:'any'},
+    {slot:'Weapon',name:"Tormentor's Bladed Fists",armor:'any'},
+    {slot:'Weapon',name:'Blade of the Final Twilight',armor:'any'},
+    {slot:'Chest',name:'Despotic Raiment',armor:'cloth'},
+    {slot:'Waist',name:'Twisted Twilight Sash',armor:'leather'},
+    {slot:'Wrist',name:"Fallen King's Cuffs",armor:'mail'},
+    {slot:'Head',name:'Crown of the Fractured Tyrant',armor:'plate'},
+    {slot:'Shoulder',name:'Voidwoven Unraveled Nullcore',armor:'cloth',tier:true},
+    {slot:'Shoulder',name:'Voidcured Unraveled Nullcore',armor:'leather',tier:true},
+    {slot:'Shoulder',name:'Voidcast Unraveled Nullcore',armor:'mail',tier:true},
+    {slot:'Shoulder',name:'Voidforged Unraveled Nullcore',armor:'plate',tier:true},
+  ],
+  'Vaelgor & Ezzorak':[
+    {slot:'Trinket',name:'Gloom-Spattered Dreadscale',armor:'any'},
+    {slot:'Trinket',name:"Vaelgor's Final Stare",armor:'any'},
+    {slot:'Back',name:'Draconic Nullcape',armor:'any'},
+    {slot:'Weapon',name:"Clutchmates' Caress",armor:'any'},
+    {slot:'Weapon',name:'Emblazoned Sunglaive',armor:'any'},
+    {slot:'Feet',name:'Slippers of the Midnight Flame',armor:'cloth'},
+    {slot:'Hands',name:"Vaelgor's Fearsome Grasp",armor:'leather'},
+    {slot:'Shoulder',name:"Nullwalker's Dread Epaulettes",armor:'mail'},
+    {slot:'Waist',name:"Ezzorak's Gloombind",armor:'plate'},
+    {slot:'Legs',name:'Voidwoven Corrupted Nullcore',armor:'cloth',tier:true},
+    {slot:'Legs',name:'Voidcured Corrupted Nullcore',armor:'leather',tier:true},
+    {slot:'Legs',name:'Voidcast Corrupted Nullcore',armor:'mail',tier:true},
+    {slot:'Legs',name:'Voidforged Corrupted Nullcore',armor:'plate',tier:true},
+  ],
+  'Lightblinded Vanguard':[
+    {slot:'Trinket',name:'Litany of Lightblind Wrath',armor:'any'},
+    {slot:'Ring',name:'Bond of Light',armor:'any'},
+    {slot:'Weapon',name:'Blade of the Blind Verdict',armor:'any'},
+    {slot:'Weapon',name:"Bellamy's Final Judgement",armor:'any'},
+    {slot:'Hands',name:"War Chaplain's Grips",armor:'cloth'},
+    {slot:'Shoulder',name:'Blooming Barklight Spaulders',armor:'leather'},
+    {slot:'Waist',name:'Waistcord of the Judged',armor:'mail'},
+    {slot:'Legs',name:'Lightblood Greaves',armor:'plate'},
+    {slot:'Head',name:'Voidwoven Fanatical Nullcore',armor:'cloth',tier:true},
+    {slot:'Head',name:'Voidcured Fanatical Nullcore',armor:'leather',tier:true},
+    {slot:'Head',name:'Voidcast Fanatical Nullcore',armor:'mail',tier:true},
+    {slot:'Head',name:'Voidforged Fanatical Nullcore',armor:'plate',tier:true},
+  ],
+  'Crown of the Cosmos':[
+    {slot:'Trinket',name:"Locus-Walker's Ribbon",armor:'any'},
+    {slot:'Trinket',name:"Ranger-Captain's Iridescent Insignia",armor:'any'},
+    {slot:'Neck',name:'Eternal Voidsong Chain',armor:'any'},
+    {slot:'Weapon',name:"Turalyon's False Echo",armor:'any'},
+    {slot:'Weapon',name:"Arator's Swift Remembrance",armor:'any'},
+    {slot:'Weapon',name:"Ranger-Captain's Lethal Recurve",armor:'any'},
+    {slot:'Head',name:'Gaze of the Unrestrained',armor:'cloth'},
+    {slot:'Feet',name:"Canopy Walker's Footwraps",armor:'leather'},
+    {slot:'Legs',name:"Nightblade's Pantaloons",armor:'leather'},
+    {slot:'Hands',name:"Untethered Berserker's Grips",armor:'mail'},
+    {slot:'Waist',name:'Hate-Tied Waistchain',armor:'plate'},
+    {slot:'Chest',name:'Sunbound Breastplate',armor:'plate'},
+  ],
+  'Chimaerus, the Undreamt God':[
+    {slot:'Trinket',name:'Gaze of the Alnseer',armor:'any'},
+    {slot:'Trinket',name:"Undreamt God's Oozing Vestige",armor:'any'},
+    {slot:'Weapon',name:'Alnscorned Spire',armor:'any'},
+    {slot:'Weapon',name:'Tome of Alnscorned Regret',armor:'any'},
+    {slot:'Feet',name:'Dream-Scorched Striders',armor:'cloth'},
+    {slot:'Waist',name:"Scorn-Scarred Shul'ka's Belt",armor:'leather'},
+    {slot:'Waist',name:'Scornbane Waistguard',armor:'mail'},
+    {slot:'Feet',name:'Greaves of the Unformed',armor:'plate'},
+    {slot:'Chest',name:'Alnwoven Riftbloom',armor:'cloth',tier:true},
+    {slot:'Chest',name:'Alncured Riftbloom',armor:'leather',tier:true},
+    {slot:'Chest',name:'Alncast Riftbloom',armor:'mail',tier:true},
+    {slot:'Chest',name:'Alnforged Riftbloom',armor:'plate',tier:true},
+  ],
+  "Belo'ren, Child of Al'ar":[
+    {slot:'Trinket',name:'Radiant Plume',armor:'any'},
+    {slot:'Trinket',name:'Umbral Plume',armor:'any'},
+    {slot:'Trinket',name:'The Eternal Egg',armor:'any'},
+    {slot:'Ring',name:"Sin'dorei Band of Hope",armor:'any'},
+    {slot:'Weapon',name:"Belo'melorn, the Shattered Talon",armor:'any'},
+    {slot:'Weapon',name:"Belo'ren's Swift Talon",armor:'any'},
+    {slot:'Weapon',name:'Thalassian Dawnguard',armor:'any'},
+    {slot:'Waist',name:'Whisper-Inscribed Sash',armor:'cloth'},
+    {slot:'Shoulder',name:'Echoing Void Mantle',armor:'cloth'},
+    {slot:'Chest',name:"Radiant Clutchtender's Jerkin",armor:'leather'},
+    {slot:'Legs',name:'Eternal Flame Scaleguards',armor:'mail'},
+    {slot:'Feet',name:'Darkstrider Treads',armor:'mail'},
+    {slot:'Hands',name:'Emberborn Grasps',armor:'plate'},
+    {slot:'Hands',name:'Chiming Void Curio',armor:'any',tier:true},
+  ],
+  'Midnight Falls':[
+    {slot:'Trinket',name:'Light of the Cosmic Crescendo',armor:'any'},
+    {slot:'Trinket',name:'Shadow of the Empyrean Requiem',armor:'any'},
+    {slot:'Neck',name:'Amulet of the Abyssal Hymn',armor:'any'},
+    {slot:'Ring',name:'Eye of Midnight',armor:'any',veryRare:true},
+    {slot:'Weapon',name:'Lightless Lament',armor:'any'},
+    {slot:'Weapon',name:"Alah'endal, the Dawnsong",armor:'any'},
+    {slot:'Weapon',name:'Brazier of the Dissonant Dirge',armor:'any'},
+    {slot:'Chest',name:'Robes of Endless Oblivion',armor:'cloth'},
+    {slot:'Head',name:'Mask of Darkest Intent',armor:'leather'},
+    {slot:'Head',name:'Oblivion Guise',armor:'mail'},
+    {slot:'Legs',name:'Extinction Guards',armor:'plate'},
+    {slot:'Hands',name:'Chiming Void Curio',armor:'any',tier:true},
   ],
 };
 
-const TAB_ACTIVE = {raid:"active-raid", mp:"active-mp", delve:"active-delve", prey:"active-prey"};
+const BOSSES=[
+  {num:1,raid:'Voidspire',         name:'Imperator Averzian',         ilvl:{normal:'246',heroic:'259',mythic:'272'}},
+  {num:2,raid:'Voidspire',         name:'Vorasius',                   ilvl:{normal:'250',heroic:'263',mythic:'276'}},
+  {num:3,raid:'Voidspire',         name:'Fallen-King Salhadaar',      ilvl:{normal:'250',heroic:'263',mythic:'276'}},
+  {num:4,raid:'Voidspire',         name:'Vaelgor & Ezzorak',          ilvl:{normal:'253',heroic:'266',mythic:'279'}},
+  {num:5,raid:'Voidspire',         name:'Lightblinded Vanguard',      ilvl:{normal:'253',heroic:'266',mythic:'279'}},
+  {num:6,raid:'Voidspire',         name:'Crown of the Cosmos',        ilvl:{normal:'256',heroic:'269',mythic:'282'}},
+  {num:1,raid:'Dreamrift',         name:'Chimaerus, the Undreamt God',ilvl:{normal:'250',heroic:'263',mythic:'276'}},
+  {num:1,raid:"March of Quel'Danas",name:"Belo'ren, Child of Al'ar",  ilvl:{normal:'250',heroic:'263',mythic:'276'}},
+  {num:2,raid:"March of Quel'Danas",name:'Midnight Falls',            ilvl:{normal:'256',heroic:'269',mythic:'282'}},
+];
 
-function slotClass(slot) {
-  if(slot==='Trinket') return 'slot-trinket';
-  if(slot==='Ring')    return 'slot-ring';
-  if(slot==='Weapon')  return 'slot-weapon';
-  if(slot==='Neck'||slot==='Cloak'||slot==='Back') return 'slot-neck';
-  const armorSlots=['Head','Chest','Shoulder','Hands','Legs','Feet','Waist','Wrist'];
-  if(armorSlots.includes(slot)) return 'slot-armor';
-  return 'slot-default';
-}
+const MP_BRACKETS=[
+  {key:'Mythic 0',   label:'Mythic 0', track:'champion'},
+  {key:'M+ +2 to +9',label:'+2 to +9', track:'hero'},
+  {key:'M+ +10+',    label:'+10+',     track:'myth'},
+];
 
-const LOOT = {
-  "Voidspire (Normal)": [
-    {slot:"Trinket",  name:"Prism of Voided Sight",     armor:"any",     roles:"all",          priority:true},
-    {slot:"Trinket",  name:"Shard of Collapsed Stars",  armor:"any",     roles:"all",          priority:true},
-    {slot:"Ring",     name:"Nexus-Touched Band",        armor:"any",     roles:"all",          priority:false},
-    {slot:"Neck",     name:"Aethermancer's Chain",      armor:"any",     roles:"all",          priority:false},
-    {slot:"Weapon",   name:"Darkwhisper Wand",          armor:"any",     roles:["dps","heal"], priority:false},
-    {slot:"Back",     name:"Veilwoven Drape",           armor:"any",     roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidwoven Hood",            armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidshifter's Helm",        armor:"leather", roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidmesh Headguard",        armor:"mail",    roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidplate Greathelm",       armor:"plate",   roles:"all",          priority:false},
-    {slot:"Chest",    name:"Starless Vestments",        armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Chest",    name:"Nightbound Tunic",          armor:"leather", roles:"all",          priority:false},
-    {slot:"Chest",    name:"Voidmesh Hauberk",          armor:"mail",    roles:"all",          priority:false},
-    {slot:"Chest",    name:"Mantle of Shattered Eons",  armor:"plate",   roles:"all",          priority:false},
-    {slot:"Legs",     name:"Voidweave Leggings",        armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Legs",     name:"Voidleather Breeches",      armor:"leather", roles:"all",          priority:false},
-    {slot:"Legs",     name:"Voidmail Legguards",        armor:"mail",    roles:"all",          priority:false},
-    {slot:"Legs",     name:"Voidplate Cuisses",         armor:"plate",   roles:"all",          priority:false},
+const DUNGEONS=[
+  {num:1,name:"Magisters' Terrace"},
+  {num:2,name:'Windrunner Spire'},
+  {num:3,name:'Pit of Saron'},
+  {num:4,name:'Seat of the Triumvirate'},
+  {num:5,name:'Nexus-Point Xenas'},
+  {num:6,name:"Algeth'ar Academy"},
+  {num:7,name:'Maisara Caverns'},
+  {num:8,name:'Skyreach'},
+];
+
+const NR_LOOT={
+  'Bountiful Delve T1–4': [{slot:'Ring',name:'Voidstone Signet',armor:'any'},{slot:'Neck',name:'Lightrift Amulet',armor:'any'},{slot:'Waist',name:'Voidweave Cord',armor:'cloth'},{slot:'Waist',name:'Voidshift Belt',armor:'leather'},{slot:'Waist',name:'Voidmesh Girdle',armor:'mail'},{slot:'Waist',name:'Voidplate Girdle',armor:'plate'},{slot:'Wrist',name:'Voidweave Cuffs',armor:'cloth'},{slot:'Wrist',name:'Voidshift Bracers',armor:'leather'},{slot:'Wrist',name:'Voidmesh Bracers',armor:'mail'},{slot:'Wrist',name:'Voidplate Bracers',armor:'plate'}],
+  'Bountiful Delve T5–7': [{slot:'Trinket',name:'Marl-Encrusted Idol',armor:'any'},{slot:'Ring',name:'Voidstone Signet',armor:'any'},{slot:'Neck',name:'Lightrift Amulet',armor:'any'},{slot:'Back',name:'Dawnwoven Cloak',armor:'any'},{slot:'Waist',name:'Voidweave Cord',armor:'cloth'},{slot:'Waist',name:'Voidshift Belt',armor:'leather'},{slot:'Waist',name:'Voidmesh Girdle',armor:'mail'},{slot:'Waist',name:'Voidplate Girdle',armor:'plate'},{slot:'Feet',name:'Voidwoven Sandals',armor:'cloth'},{slot:'Feet',name:'Voidshift Boots',armor:'leather'},{slot:'Feet',name:'Voidmesh Sabatons',armor:'mail'},{slot:'Feet',name:'Voidplate Sabatons',armor:'plate'}],
+  'Bountiful Delve T8–11':[{slot:'Trinket',name:'Marl-Encrusted Idol',armor:'any'},{slot:'Ring',name:'Voidstone Signet',armor:'any'},{slot:'Neck',name:'Lightrift Amulet',armor:'any'},{slot:'Back',name:'Dawnwoven Cloak',armor:'any'},{slot:'Feet',name:'Voidwoven Sandals',armor:'cloth'},{slot:'Feet',name:'Voidshift Boots',armor:'leather'},{slot:'Feet',name:'Voidmesh Sabatons',armor:'mail'},{slot:'Feet',name:'Voidplate Sabatons',armor:'plate'}],
+  'Prey Hunt (Nightmare)':[{slot:'Trinket',name:'Preymark Sigil',armor:'any'},{slot:'Ring',name:"Hunter's Voidcoil Band",armor:'any'},{slot:'Neck',name:'Cord of the Hunted',armor:'any'},{slot:'Back',name:"Nightmare-Stalker's Cloak",armor:'any'},{slot:'Weapon',name:'Shadowfang Glaive',armor:'any'},{slot:'Shoulder',name:"Predator's Voidmantle",armor:'cloth'},{slot:'Shoulder',name:"Predator's Leathermantle",armor:'leather'},{slot:'Shoulder',name:"Predator's Chainmantle",armor:'mail'},{slot:'Shoulder',name:"Predator's Platemantle",armor:'plate'}],
+  // ── M+ Dungeon Loot (same items all brackets, track differs) ──
+  "Magisters' Terrace":[
+    {slot:'Trinket',name:'Jelly Replicator',armor:'any'},
+    {slot:'Trinket',name:'Eye of the Drowning Void',armor:'any'},
+    {slot:'Trinket',name:'Refueling Orb',armor:'any'},
+    {slot:'Ring',   name:'Bifurcation Band',armor:'any'},
+    {slot:'Back',   name:"Defiant Defender's Drape",armor:'any'},
+    {slot:'Weapon', name:'Splitshroud Stinger',armor:'any'},
+    {slot:'Weapon', name:'Shadowslash Slicer',armor:'any'},
+    {slot:'Weapon', name:'Malfeasance Mallet',armor:'any'},
+    {slot:'Weapon', name:'Whirling Voidcleaver',armor:'any'},
+    {slot:'Weapon', name:'Ward of the Spellbreaker',armor:'any'},
+    {slot:'Weapon', name:'Resolute Runeglaive',armor:'any'},
+    {slot:'Chest',  name:'Wraps of Umbral Descent',armor:'cloth'},
+    {slot:'Wrist',  name:'Wraps of Watchful Wrath',armor:'cloth'},
+    {slot:'Waist',  name:'Clasp of Compliance',armor:'cloth'},
+    {slot:'Hands',  name:'Gloves of Viscous Goo',armor:'leather'},
+    {slot:'Wrist',  name:'Custodial Cuffs',armor:'leather'},
+    {slot:'Feet',   name:"Domanaar's Dire Treads",armor:'leather'},
+    {slot:'Head',   name:'Vortex Visage',armor:'mail'},
+    {slot:'Waist',  name:"Sunlash's Sunsash",armor:'mail'},
+    {slot:'Legs',   name:'Leggings of Orderly Conduct',armor:'mail'},
+    {slot:'Chest',  name:"Arcane Guardian's Shell",armor:'plate'},
+    {slot:'Waist',  name:'Shadowsplit Girdle',armor:'plate'},
+    {slot:'Legs',   name:'Legplates of Lingering Dusk',armor:'plate'},
+    {slot:'Feet',   name:'Oathsworn Stompers',armor:'plate'},
   ],
-  "Voidspire (Heroic)": [
-    {slot:"Trinket",  name:"Prism of Voided Sight",     armor:"any",     roles:"all",          priority:true},
-    {slot:"Trinket",  name:"Shard of Collapsed Stars",  armor:"any",     roles:"all",          priority:true},
-    {slot:"Ring",     name:"Nexus-Touched Band",        armor:"any",     roles:"all",          priority:true},
-    {slot:"Neck",     name:"Aethermancer's Chain",      armor:"any",     roles:"all",          priority:false},
-    {slot:"Weapon",   name:"Darkwhisper Wand",          armor:"any",     roles:["dps","heal"], priority:false},
-    {slot:"Back",     name:"Veilwoven Drape",           armor:"any",     roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidcrown of the Domanaar", armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidshifter's Crown",       armor:"leather", roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidmesh Crown",            armor:"mail",    roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidplate Crown",           armor:"plate",   roles:"all",          priority:false},
-    {slot:"Chest",    name:"Starless Vestments",        armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Chest",    name:"Nightbound Tunic",          armor:"leather", roles:"all",          priority:false},
-    {slot:"Chest",    name:"Voidmesh Hauberk",          armor:"mail",    roles:"all",          priority:false},
-    {slot:"Chest",    name:"Mantle of Shattered Eons",  armor:"plate",   roles:"all",          priority:false},
-    {slot:"Shoulder", name:"Spaulders of the Void",     armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Shoulder", name:"Voidshifter's Mantle",      armor:"leather", roles:"all",          priority:false},
-    {slot:"Shoulder", name:"Voidmesh Shoulderguards",   armor:"mail",    roles:"all",          priority:false},
-    {slot:"Shoulder", name:"Voidplate Pauldrons",       armor:"plate",   roles:"all",          priority:false},
+  'Windrunner Spire':[
+    {slot:'Trinket',name:'Heart of Wind',armor:'any'},
+    {slot:'Trinket',name:"Latch's Crooked Hook",armor:'any'},
+    {slot:'Trinket',name:"Kroluk's Warbanner",armor:'any'},
+    {slot:'Trinket',name:'Emberwing Feather',armor:'any'},
+    {slot:'Neck',   name:'Pendant of Aching Grief',armor:'any'},
+    {slot:'Weapon', name:'Warworn Cleaver',armor:'any'},
+    {slot:'Weapon', name:'Excavating Cudgel',armor:'any'},
+    {slot:'Weapon', name:"Hurricane's Heart",armor:'any'},
+    {slot:'Weapon', name:'Emberdawn Defender',armor:'any'},
+    {slot:'Head',   name:'Brambledawn Halo',armor:'cloth'},
+    {slot:'Shoulder',name:'Mantle of Dark Devotion',armor:'cloth'},
+    {slot:'Legs',   name:"Commander's Faded Breeches",armor:'cloth'},
+    {slot:'Shoulder',name:"Fallen Grunt's Mantle",armor:'leather'},
+    {slot:'Chest',  name:'Vest of the Howling Gale',armor:'leather'},
+    {slot:'Waist',  name:'Snapvine Cinch',armor:'leather'},
+    {slot:'Legs',   name:'Legwraps of Lingering Legacies',armor:'leather'},
+    {slot:'Shoulder',name:"Spaulders of Arrow's Flight",armor:'mail'},
+    {slot:'Wrist',  name:'Amberfrond Bracers',armor:'mail'},
+    {slot:'Hands',  name:'Grips of Forgotten Honor',armor:'mail'},
+    {slot:'Feet',   name:'Whipcoil Sabatons',armor:'mail'},
+    {slot:'Head',   name:"Fletcher's Faded Faceplate",armor:'plate'},
+    {slot:'Waist',  name:'Riphook Defender',armor:'plate'},
+    {slot:'Feet',   name:'Sabatons of Furious Revenge',armor:'plate'},
+    {slot:'Hands',  name:'Embergrove Grasps',armor:'plate'},
   ],
-  "Voidspire (Mythic)": [
-    {slot:"Trinket",  name:"Prism of Voided Sight",     armor:"any",     roles:"all",          priority:true},
-    {slot:"Trinket",  name:"Shard of Collapsed Stars",  armor:"any",     roles:"all",          priority:true},
-    {slot:"Ring",     name:"Nexus-Touched Band",        armor:"any",     roles:"all",          priority:true},
-    {slot:"Neck",     name:"Aethermancer's Chain",      armor:"any",     roles:"all",          priority:false},
-    {slot:"Weapon",   name:"Darkwhisper Wand",          armor:"any",     roles:["dps","heal"], priority:true},
-    {slot:"Head",     name:"Voidcrown of the Domanaar", armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidshifter's Crown",       armor:"leather", roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidmesh Crown",            armor:"mail",    roles:"all",          priority:false},
-    {slot:"Head",     name:"Voidplate Crown",           armor:"plate",   roles:"all",          priority:false},
-    {slot:"Chest",    name:"Starless Vestments",        armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Chest",    name:"Nightbound Tunic",          armor:"leather", roles:"all",          priority:false},
-    {slot:"Chest",    name:"Voidmesh Hauberk",          armor:"mail",    roles:"all",          priority:false},
-    {slot:"Chest",    name:"Mantle of Shattered Eons",  armor:"plate",   roles:"all",          priority:false},
+  'Pit of Saron':[
+    {slot:'Trinket',name:'Nevermelting Ice Crystal',armor:'any'},
+    {slot:'Neck',   name:'Barbed Ymirheim Choker',armor:'any'},
+    {slot:'Ring',   name:'Purloined Wedding Ring',armor:'any'},
+    {slot:'Back',   name:'Cloak of the Fallen Cardinal',armor:'any'},
+    {slot:'Weapon', name:"Krick's Beetle Stabber",armor:'any'},
+    {slot:'Weapon', name:"Surgeon's Needle",armor:'any'},
+    {slot:'Weapon', name:"Garfrost's Two-Ton Hammer",armor:'any'},
+    {slot:'Weapon', name:'Rimebane Rifle',armor:'any'},
+    {slot:'Chest',  name:'Palebone Robes',armor:'cloth'},
+    {slot:'Wrist',  name:'Wristguards of Subterranean Moss',armor:'cloth'},
+    {slot:'Waist',  name:'Braid of Salt and Fire',armor:'cloth'},
+    {slot:'Feet',   name:'Ice-Steeped Sandals',armor:'cloth'},
+    {slot:'Wrist',  name:'Chewed Leather Wristguards',armor:'leather'},
+    {slot:'Waist',  name:"Flayer's Black Belt",armor:'leather'},
+    {slot:'Legs',   name:'Shaggy Wyrmleather Leggings',armor:'leather'},
+    {slot:'Head',   name:'Horns of the Spurned Val\'kyr',armor:'mail'},
+    {slot:'Shoulder',name:"Spurned Val'kyr Shoulderguards",armor:'mail'},
+    {slot:'Waist',  name:'Scabrous Zombie Belt',armor:'mail'},
+    {slot:'Legs',   name:'Black Dragonskin Breeches',armor:'mail'},
+    {slot:'Head',   name:'Skeleton Lord\'s Cranium',armor:'plate'},
+    {slot:'Shoulder',name:'Shoulderplates of Frozen Blood',armor:'plate'},
+    {slot:'Chest',  name:'Frost Wyrm Ribcage',armor:'plate'},
+    {slot:'Waist',  name:'Bent Gold Belt',armor:'plate'},
   ],
-  "Mythic 0": [
-    {slot:"Trinket",  name:"Arcanist's Prism",          armor:"any",     roles:["dps","heal"], priority:false},
-    {slot:"Ring",     name:"Sunwhisper Loop",           armor:"any",     roles:"all",          priority:false},
-    {slot:"Neck",     name:"Frostbound Pendant",        armor:"any",     roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidwoven Gloves",          armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidshift Grips",           armor:"leather", roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidmesh Gauntlets",        armor:"mail",    roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidplate Gauntlets",       armor:"plate",   roles:"all",          priority:false},
+  'Seat of the Triumvirate':[
+    {slot:'Trinket',name:'Void Stalker\'s Contract',armor:'any'},
+    {slot:'Trinket',name:'Ampoule of Pure Void',armor:'any'},
+    {slot:'Trinket',name:'Reality Breacher',armor:'any'},
+    {slot:'Trinket',name:"Echo of L'ura",armor:'any'},
+    {slot:'Neck',   name:'Necklace of the Twisting Void',armor:'any'},
+    {slot:'Ring',   name:'Eredath Seal of Nobility',armor:'any'},
+    {slot:'Ring',   name:'Band of the Triumvirate',armor:'any'},
+    {slot:'Weapon', name:'Grips of the Dark Viceroy',armor:'any'},
+    {slot:'Weapon', name:'Scepter of the Endless Night',armor:'any'},
+    {slot:'Weapon', name:'Spellboon Saber',armor:'any'},
+    {slot:'Weapon', name:'Umbral Spire of Zuraal',armor:'any'},
+    {slot:'Weapon', name:"Wand of Saprish's Gaze",armor:'any'},
+    {slot:'Head',   name:"Shadow-Weaver's Crown",armor:'cloth'},
+    {slot:'Shoulder',name:"Viceroy's Umbral Mantle",armor:'cloth'},
+    {slot:'Chest',  name:'Voidbender Robe',armor:'cloth'},
+    {slot:'Wrist',  name:'Entropic Wristwraps',armor:'cloth'},
+    {slot:'Hands',  name:'Handwraps of the Ascended',armor:'cloth'},
+    {slot:'Legs',   name:"Subjugator's Leggings",armor:'cloth'},
+    {slot:'Head',   name:'Voidlashed Hood',armor:'leather'},
+    {slot:'Wrist',  name:'Bracers of Dark Binding',armor:'leather'},
+    {slot:'Hands',  name:'Gloves of the Dark Shroud',armor:'leather'},
+    {slot:'Waist',  name:'Cinch of the Umbral Lasher',armor:'leather'},
+    {slot:'Legs',   name:'Shifting Stalker Hide Pants',armor:'leather'},
+    {slot:'Feet',   name:'Footpads of Seeping Dread',armor:'leather'},
+    {slot:'Shoulder',name:'Pauldrons of the Void Hunter',armor:'mail'},
+    {slot:'Chest',  name:'Void-Linked Robe',armor:'mail'},
+    {slot:'Wrist',  name:'Darkfang Scale Wristguards',armor:'mail'},
+    {slot:'Waist',  name:'Waistguard of Bound Energy',armor:'mail'},
+    {slot:'Legs',   name:'Leggings of Shifting Darkness',armor:'mail'},
+    {slot:'Feet',   name:'Black Dragonskin Breeches',armor:'mail'},
+    {slot:'Head',   name:'Crown of the Dark Envoy',armor:'plate'},
+    {slot:'Shoulder',name:'Pauldrons of the Broken',armor:'plate'},
+    {slot:'Chest',  name:'Breastplate of the Dark Touch',armor:'plate'},
+    {slot:'Hands',  name:'Voidclaw Gauntlets',armor:'plate'},
+    {slot:'Waist',  name:'Girdle of the Shadowguard',armor:'plate'},
+    {slot:'Feet',   name:'Trap Jammers',armor:'plate'},
   ],
-  "M+ +2 to +5": [
-    {slot:"Trinket",  name:"Arcanist's Prism",          armor:"any",     roles:["dps","heal"], priority:true},
-    {slot:"Ring",     name:"Sunwhisper Loop",           armor:"any",     roles:"all",          priority:false},
-    {slot:"Neck",     name:"Frostbound Pendant",        armor:"any",     roles:"all",          priority:false},
-    {slot:"Back",     name:"Shroud of the Void",        armor:"any",     roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidwoven Gloves",          armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidshift Grips",           armor:"leather", roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidmesh Gauntlets",        armor:"mail",    roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidplate Gauntlets",       armor:"plate",   roles:"all",          priority:false},
+  'Nexus-Point Xenas':[
+    {slot:'Trinket',name:'Whisper of the Duskwraith',armor:'any'},
+    {slot:'Trinket',name:'Mark of Light',armor:'any'},
+    {slot:'Ring',   name:'Occlusion of Void',armor:'any'},
+    {slot:'Ring',   name:'Omission of Light',armor:'any'},
+    {slot:'Weapon', name:'Radiant Slicer',armor:'any'},
+    {slot:'Weapon', name:'Dreadflail Bludgeon',armor:'any'},
+    {slot:'Weapon', name:'Corespark Multitool',armor:'any'},
+    {slot:'Shoulder',name:"Nysarra's Mantle",armor:'cloth'},
+    {slot:'Legs',   name:'Leyline Leggings',armor:'cloth'},
+    {slot:'Chest',  name:'Maledict Vest',armor:'leather'},
+    {slot:'Hands',  name:"Corewright's Zappers",armor:'leather'},
+    {slot:'Feet',   name:'Eclipse Espadrilles',armor:'leather'},
+    {slot:'Wrist',  name:'Corewarden Cuffs',armor:'mail'},
+    {slot:'Legs',   name:'Greaves of the Divine Guile',armor:'mail'},
+    {slot:'Shoulder',name:'Searing Spaulders',armor:'plate'},
+    {slot:'Wrist',  name:"Kasreth's Bindings",armor:'plate'},
+    {slot:'Legs',   name:'Lightscarred Cuisses',armor:'plate'},
   ],
-  "M+ +6 to +9": [
-    {slot:"Trinket",  name:"Galvanized Void Coil",      armor:"any",     roles:"all",          priority:true},
-    {slot:"Trinket",  name:"Arcanist's Prism",          armor:"any",     roles:["dps","heal"], priority:true},
-    {slot:"Ring",     name:"Sunwhisper Loop",           armor:"any",     roles:"all",          priority:true},
-    {slot:"Neck",     name:"Frostbound Pendant",        armor:"any",     roles:"all",          priority:false},
-    {slot:"Weapon",   name:"Skyreach Glaive",           armor:"any",     roles:["dps","tank"], priority:false},
-    {slot:"Back",     name:"Shroud of the Void",        armor:"any",     roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidwoven Sandals",         armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidshift Boots",           armor:"leather", roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidmesh Sabatons",         armor:"mail",    roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidplate Sabatons",        armor:"plate",   roles:"all",          priority:false},
+  "Algeth'ar Academy":[
+    {slot:'Trinket',name:"Algeth'ar Puzzle Box",armor:'any'},
+    {slot:'Trinket',name:"Emerald Coach's Whistle",armor:'any'},
+    {slot:'Trinket',name:'Dragon Games Equipment',armor:'any'},
+    {slot:'Ring',   name:'Platinum Star Band',armor:'any'},
+    {slot:'Back',   name:'Potion-Stained Cloak',armor:'any'},
+    {slot:'Weapon', name:"Mystakria's Harvester",armor:'any'},
+    {slot:'Weapon', name:'Spellbane Cutlass',armor:'any'},
+    {slot:'Weapon', name:"Algeth'ar Hedgecleaver",armor:'any'},
+    {slot:'Weapon', name:'Final Grade',armor:'any'},
+    {slot:'Weapon', name:"Vexamus' Expulsion Rod",armor:'any'},
+    {slot:'Hands',  name:'Experimental Safety Gloves',armor:'cloth'},
+    {slot:'Wrist',  name:'Frenzyroot Cuffs',armor:'leather'},
+    {slot:'Hands',  name:'Ruby Contestant\'s Gloves',armor:'leather'},
+    {slot:'Shoulder',name:'Scaled Commencement Spaulders',armor:'mail'},
+    {slot:'Waist',  name:'Azure Belt of Competition',armor:'mail'},
+    {slot:'Feet',   name:'Boots of Explosive Growth',armor:'mail'},
+    {slot:'Chest',  name:'Breastplate of Proven Knowledge',armor:'plate'},
+    {slot:'Legs',   name:"Venerated Professor's Greaves",armor:'plate'},
   ],
-  "M+ +10+": [
-    {slot:"Trinket",  name:"Galvanized Void Coil",      armor:"any",     roles:"all",          priority:true},
-    {slot:"Trinket",  name:"Arcanist's Prism",          armor:"any",     roles:["dps","heal"], priority:true},
-    {slot:"Ring",     name:"Sunwhisper Loop",           armor:"any",     roles:"all",          priority:true},
-    {slot:"Neck",     name:"Frostbound Pendant",        armor:"any",     roles:"all",          priority:false},
-    {slot:"Weapon",   name:"Spire-Touched Blade",       armor:"any",     roles:["dps","tank"], priority:false},
-    {slot:"Back",     name:"Shroud of the Void",        armor:"any",     roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidwoven Gloves",          armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidshift Grips",           armor:"leather", roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidmesh Gauntlets",        armor:"mail",    roles:"all",          priority:false},
-    {slot:"Hands",    name:"Voidplate Gauntlets",       armor:"plate",   roles:"all",          priority:false},
+  'Maisara Caverns':[
+    {slot:'Trinket',name:"Soulcatcher's Charm",armor:'any'},
+    {slot:'Trinket',name:'Vessel of Tortured Souls',armor:'any'},
+    {slot:'Trinket',name:'Rotting Globule',armor:'any'},
+    {slot:'Back',   name:'Shroud of the Soulhunter',armor:'any'},
+    {slot:'Weapon', name:'Soulblight Cleaver',armor:'any'},
+    {slot:'Weapon', name:'Ceremonial Hexblade',armor:'any'},
+    {slot:'Weapon', name:"Berserker's Hexclaws",armor:'any'},
+    {slot:'Weapon', name:"Traitor's Talon",armor:'any'},
+    {slot:'Weapon', name:"Deceiver's Rotbow",armor:'any'},
+    {slot:'Weapon', name:"Liferipper's Cutlass",armor:'any'},
+    {slot:'Chest',  name:'Bronze Challenger\'s Robe',armor:'cloth'},
+    {slot:'Hands',  name:'Vilehex Bonds',armor:'cloth'},
+    {slot:'Feet',   name:'Nightprey Stalkers',armor:'cloth'},
+    {slot:'Head',   name:'Fetid Vilecrown',armor:'leather'},
+    {slot:'Shoulder',name:'Enthralled Bonespines',armor:'leather'},
+    {slot:'Waist',  name:"Falconer's Cinch",armor:'leather'},
+    {slot:'Shoulder',name:"Reanimator's Weight",armor:'mail'},
+    {slot:'Chest',  name:'Decaying Cuirass',armor:'mail'},
+    {slot:'Legs',   name:'Wickedweave Trousers',armor:'mail'},
+    {slot:'Shoulder',name:"Amalgamation's Harness",armor:'plate'},
+    {slot:'Wrist',  name:"Trollhunter's Bands",armor:'plate'},
+    {slot:'Feet',   name:'Footwraps of Ill-Fate',armor:'plate'},
   ],
-  "Bountiful Delve T1–4": [
-    {slot:"Ring",     name:"Voidstone Signet",          armor:"any",     roles:"all",          priority:false},
-    {slot:"Neck",     name:"Lightrift Amulet",          armor:"any",     roles:"all",          priority:false},
-    {slot:"Waist",    name:"Voidweave Cord",            armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Waist",    name:"Voidshift Belt",            armor:"leather", roles:"all",          priority:false},
-    {slot:"Waist",    name:"Voidmesh Girdle",           armor:"mail",    roles:"all",          priority:false},
-    {slot:"Waist",    name:"Voidplate Girdle",          armor:"plate",   roles:"all",          priority:false},
-    {slot:"Wrist",    name:"Voidweave Cuffs",           armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Wrist",    name:"Voidshift Bracers",         armor:"leather", roles:"all",          priority:false},
-    {slot:"Wrist",    name:"Voidmesh Bracers",          armor:"mail",    roles:"all",          priority:false},
-    {slot:"Wrist",    name:"Voidplate Bracers",         armor:"plate",   roles:"all",          priority:false},
-  ],
-  "Bountiful Delve T5–6": [
-    {slot:"Trinket",  name:"Marl-Encrusted Idol",       armor:"any",     roles:"all",          priority:false},
-    {slot:"Ring",     name:"Voidstone Signet",          armor:"any",     roles:"all",          priority:false},
-    {slot:"Neck",     name:"Lightrift Amulet",          armor:"any",     roles:"all",          priority:false},
-    {slot:"Back",     name:"Dawnwoven Cloak",           armor:"any",     roles:"all",          priority:false},
-    {slot:"Waist",    name:"Voidweave Cord",            armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Waist",    name:"Voidshift Belt",            armor:"leather", roles:"all",          priority:false},
-    {slot:"Waist",    name:"Voidmesh Girdle",           armor:"mail",    roles:"all",          priority:false},
-    {slot:"Waist",    name:"Voidplate Girdle",          armor:"plate",   roles:"all",          priority:false},
-  ],
-  "Bountiful Delve T7": [
-    {slot:"Trinket",  name:"Marl-Encrusted Idol",       armor:"any",     roles:"all",          priority:true},
-    {slot:"Ring",     name:"Voidstone Signet",          armor:"any",     roles:"all",          priority:false},
-    {slot:"Neck",     name:"Lightrift Amulet",          armor:"any",     roles:"all",          priority:false},
-    {slot:"Back",     name:"Dawnwoven Cloak",           armor:"any",     roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidwoven Sandals",         armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidshift Boots",           armor:"leather", roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidmesh Sabatons",         armor:"mail",    roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidplate Sabatons",        armor:"plate",   roles:"all",          priority:false},
-  ],
-  "Bountiful Delve T8": [
-    {slot:"Trinket",  name:"Marl-Encrusted Idol",       armor:"any",     roles:"all",          priority:true},
-    {slot:"Ring",     name:"Voidstone Signet",          armor:"any",     roles:"all",          priority:true},
-    {slot:"Neck",     name:"Lightrift Amulet",          armor:"any",     roles:"all",          priority:false},
-    {slot:"Back",     name:"Dawnwoven Cloak",           armor:"any",     roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidwoven Sandals",         armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidshift Boots",           armor:"leather", roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidmesh Sabatons",         armor:"mail",    roles:"all",          priority:false},
-    {slot:"Feet",     name:"Voidplate Sabatons",        armor:"plate",   roles:"all",          priority:false},
-  ],
-  "Prey Hunt (Nightmare)": [
-    {slot:"Trinket",  name:"Preymark Sigil",            armor:"any",     roles:"all",          priority:true},
-    {slot:"Ring",     name:"Hunter's Voidcoil Band",    armor:"any",     roles:"all",          priority:false},
-    {slot:"Neck",     name:"Cord of the Hunted",        armor:"any",     roles:"all",          priority:false},
-    {slot:"Back",     name:"Nightmare-Stalker's Cloak", armor:"any",     roles:"all",          priority:false},
-    {slot:"Weapon",   name:"Shadowfang Glaive",         armor:"any",     roles:["dps","tank"], priority:false},
-    {slot:"Shoulder", name:"Predator's Voidmantle",     armor:"cloth",   roles:"all",          priority:false},
-    {slot:"Shoulder", name:"Predator's Leathermantle",  armor:"leather", roles:"all",          priority:false},
-    {slot:"Shoulder", name:"Predator's Chainmantle",    armor:"mail",    roles:"all",          priority:false},
-    {slot:"Shoulder", name:"Predator's Platemant",      armor:"plate",   roles:"all",          priority:false},
+  'Skyreach':[
+    {slot:'Trinket',name:'Solarflare Prism',armor:'any'},
+    {slot:'Trinket',name:'Solar Core Igniter',armor:'any'},
+    {slot:'Trinket',name:'Radiant Sunstone',armor:'any'},
+    {slot:'Back',   name:'Rigid Scale Greatcloak',armor:'any'},
+    {slot:'Weapon', name:'Edge of the Burning Sun',armor:'any'},
+    {slot:'Weapon', name:'Blazing Sunclaws',armor:'any'},
+    {slot:'Weapon', name:'Arcanic of the High Sage',armor:'any'},
+    {slot:'Weapon', name:'Beakbreaker Scimitar',armor:'any'},
+    {slot:'Weapon', name:"Skybreaker's Blade",armor:'any'},
+    {slot:'Weapon', name:'Sunlance of Viryx',armor:'any'},
+    {slot:'Weapon', name:"Roostwarden's Bough",armor:'any'},
+    {slot:'Weapon', name:'Spire of the Furious Construct',armor:'any'},
+    {slot:'Weapon', name:'Chakram-Breaker Greatsword',armor:'any'},
+    {slot:'Weapon', name:"Stormshaper's Crossbow",armor:'any'},
+    {slot:'Weapon', name:"Viryx's Indomitable Bulwark",armor:'any'},
+    {slot:'Weapon', name:"Rukhran's Solar Reliquary",armor:'any'},
+    {slot:'Shoulder',name:'Lightbinder Shoulderguards',armor:'cloth'},
+    {slot:'Wrist',  name:'Bracers of Blazing Light',armor:'cloth'},
+    {slot:'Legs',   name:'Legwraps of Swirling Light',armor:'cloth'},
+    {slot:'Feet',   name:'Lightbinder Treads',armor:'cloth'},
+    {slot:'Shoulder',name:'Bloodfeather Mantle',armor:'leather'},
+    {slot:'Chest',  name:'Bloodfeather Chestguard',armor:'leather'},
+    {slot:'Feet',   name:'Boots of Burning Focus',armor:'leather'},
+    {slot:'Head',   name:'Sharpeye Gleam',armor:'mail'},
+    {slot:'Chest',  name:'Sharpeye Chestguard',armor:'mail'},
+    {slot:'Feet',   name:'Rigid Scale Boots',armor:'mail'},
+    {slot:'Head',   name:'Gutcrusher Greathelm',armor:'plate'},
+    {slot:'Shoulder',name:'Spaulders of Scorching Ray',armor:'plate'},
+    {slot:'Hands',  name:'Incarnadine Gauntlets',armor:'plate'},
   ],
 };
 
-// ── State ────────────────────────────────────────────────────────
-let totalCores=2, usedCores=0, selectedActivity=null, obtained={}, rolls=[];
-let selectedClass=null, selectedSpec=null, activeGroup=null;
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let SC=null,SS=null;
+let gear={};        // slot→track
+let tierHave={};    // slot→bool (has tier token)
+let selActs=new Set();
+let rolled={};      // actKey→Set of item names
+let banished={};    // actKey→Set of item names
+let diff='heroic';
 
-// ── Class grid ───────────────────────────────────────────────────
-const classGrid = document.getElementById('classGrid');
-CLASSES.forEach((cls, ci) => {
-  const btn = document.createElement('button');
-  btn.className = 'class-btn';
-  btn.innerHTML = `<span class="class-icon">${cls.icon}</span><span class="class-name">${cls.name}</span>`;
-  btn.addEventListener('click', () => pickClass(ci, btn, cls));
-  classGrid.appendChild(btn);
-});
-
-function pickClass(ci, btn, cls) {
-  document.querySelectorAll('.class-btn').forEach((b,i) => {
-    b.classList.toggle('active', i===ci);
-    b.style.borderColor = i===ci ? cls.activeBorder : '';
-    b.style.background  = i===ci ? cls.activeBg : '';
+// ═══════════════════════════════════════════════════════
+// STEP 1
+// ═══════════════════════════════════════════════════════
+(function(){
+  const g=document.getElementById('cgrid');
+  CLASSES.forEach((c,i)=>{
+    const b=document.createElement('button');b.className='cbtn';
+    b.innerHTML=`<span class="cico">${c.icon}</span><span class="cnm">${c.name}</span>`;
+    b.addEventListener('click',()=>pickClass(i,b,c));g.appendChild(b);
   });
-  selectedClass = cls; selectedSpec = null;
-  buildSpecRow(cls); updateCharSummary();
-  if (selectedActivity) renderLootPool(selectedActivity);
-}
+})();
 
-function buildSpecRow(cls) {
-  const row = document.getElementById('specRow'); row.innerHTML = '';
-  cls.specs.forEach(spec => {
-    const btn = document.createElement('button');
-    btn.className = 'spec-btn';
-    btn.style.borderColor = cls.activeBorder;
-    btn.innerHTML = `${spec.name}<span class="spec-role-tag tag-${spec.role}">${{tank:'Tank',heal:'Healer',dps:'DPS'}[spec.role]}</span>`;
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.spec-btn').forEach(b => { b.classList.remove('active'); b.style.background=''; });
-      btn.classList.add('active'); btn.style.background = cls.activeBg;
-      selectedSpec = spec; updateCharSummary();
-      if (selectedActivity) renderLootPool(selectedActivity);
+function pickClass(i,btn,c){
+  document.querySelectorAll('.cbtn').forEach((b,j)=>{b.classList.toggle('on',j===i);b.style.borderColor=j===i?c.ab:'';b.style.background=j===i?c.bg:'';});
+  SC=c;SS=null;buildSpecs(c);updateSummary();lock();rebuildPools();
+}
+function buildSpecs(c){
+  const r=document.getElementById('srow');r.innerHTML='';
+  c.specs.forEach(s=>{
+    const b=document.createElement('button');b.className='sbtn';b.style.borderColor=c.ab;
+    b.innerHTML=`${s.name}<span class="rtag ${s.role==='tank'?'rt':s.role==='heal'?'rh':'rd'}">${{tank:'Tank',heal:'Healer',dps:'DPS'}[s.role]}</span>`;
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.sbtn').forEach(x=>{x.classList.remove('on');x.style.background='';});
+      b.classList.add('on');b.style.background=c.bg;
+      SS=s;updateSummary();lock();rebuildPools();
     });
-    row.appendChild(btn);
+    r.appendChild(b);
   });
 }
-
-function updateCharSummary() {
-  const el = document.getElementById('charSummary');
-  if (!selectedClass) { el.innerHTML = 'No class selected — loot pool will show all items.'; return; }
-  const a = selectedClass.armor, al = a[0].toUpperCase()+a.slice(1);
-  if (!selectedSpec) el.innerHTML = `<strong>${selectedClass.name}</strong> — ${al} armor. Select a spec to also filter by role.`;
-  else el.innerHTML = `<strong>${selectedClass.name}</strong> · <strong>${selectedSpec.name}</strong> · ${al} armor · ${{tank:'Tank',heal:'Healer',dps:'DPS'}[selectedSpec.role]}`;
+function updateSummary(){
+  const el=document.getElementById('csum');
+  if(!SC){el.innerHTML='Select a class and spec to begin.';return;}
+  const ar=SC.armor[0].toUpperCase()+SC.armor.slice(1);
+  if(!SS){el.innerHTML=`<strong>${SC.name}</strong> — ${ar} armor. Select a spec to continue.`;return;}
+  el.innerHTML=`<strong>${SC.name}</strong> · <strong>${SS.name}</strong> · ${ar} armor · ${{str:'Strength',agi:'Agility',int:'Intellect'}[SS.stat]}`;
+}
+function lock(){
+  const ok=!!(SC&&SS);
+  ['gcard','acard','rcard'].forEach(id=>document.getElementById(id).classList.toggle('locked',!ok));
+  document.getElementById('s1n').classList.toggle('done',ok);
 }
 
-function itemMatchesChar(item) {
-  if (!selectedClass) return true;
-  if (item.armor !== 'any' && item.armor !== selectedClass.armor) return false;
-  if (!selectedSpec || item.roles === 'all') return true;
-  return item.roles.includes(selectedSpec.role);
+// ═══════════════════════════════════════════════════════
+// STEP 2 — GEAR
+// ═══════════════════════════════════════════════════════
+function buildGearGrid(){
+  const g=document.getElementById('ggrid');g.innerHTML='';
+  const opts=[{v:'none',l:'None'},{v:'veteran',l:'Veteran'},{v:'champion',l:'Champion'},{v:'hero',l:'Hero'},{v:'myth',l:'Myth'}];
+  GEAR_SLOTS.forEach(slot=>{
+    const cur=gear[slot]||'none';
+    const hasTier=tierHave[slot]||false;
+    const d=document.createElement('div');d.className='gslot'+(cur!=='none'?' filled':'');d.id='gs_'+slot.replace(/\s/g,'_');
+    const tierHtml=TIER_SLOTS.has(slot)?`<label class="tier-chk"><input type="checkbox" onchange="setTier('${slot}',this.checked)"${hasTier?' checked':''}> <span>Tier</span></label>`:'';
+    d.innerHTML=`<div class="gslot-nm">${slot}</div><select onchange="setGear('${slot}',this.value)">${opts.map(o=>`<option value="${o.v}"${cur===o.v?' selected':''}>${o.l}</option>`).join('')}</select>${tierHtml}`;
+    g.appendChild(d);
+  });
+}
+function setGear(slot,track){
+  gear[slot]=track;
+  const d=document.getElementById('gs_'+slot.replace(/\s/g,'_'));
+  if(d)d.classList.toggle('filled',track!=='none');
+  buildRec();
+}
+function setTier(slot,val){
+  tierHave[slot]=val;
+  buildRec();
+}
+buildGearGrid();
+
+// ═══════════════════════════════════════════════════════
+// ELIGIBILITY
+// ═══════════════════════════════════════════════════════
+function weaponOk(name){
+  if(!SC||!SS)return true;
+  const w=WEAPONS[name];if(!w)return true;
+  if(w.cls&&!w.cls.includes(SC.name))return false;
+  if(w.sr&&w.sr[SC.name]&&!w.sr[SC.name].includes(SS.name))return false;
+  if(w.stat!=='any'&&w.stat!==SS.stat)return false;
+  if(!SS.wt.includes(w.wtype))return false;
+  return true;
+}
+function trinketOk(name){
+  if(!SC||!SS)return true;
+  const t=TRINKETS[name];if(!t)return true;
+  if(t.type==='universal')return true;
+  if(t.type==='tank')return SS.role==='tank';
+  if(t.type==='specmap'){const a=t.map[SC.name];return!!(a&&a.includes(SS.name));}
+  if(t.type==='agiint')return SS.stat==='agi'||SS.stat==='int';
+  if(t.type==='str')return SS.stat==='str';
+  if(t.type==='int')return SS.stat==='int';
+  return false;
+}
+function itemOk(item){
+  if(!SC)return true;
+  if(item.armor!=='any'&&item.armor!==SC.armor)return false;
+  if(item.slot==='Weapon')return weaponOk(item.name);
+  if(item.slot==='Trinket')return trinketOk(item.name);
+  return true;
 }
 
-// ── Cores ────────────────────────────────────────────────────────
-function updateAll() {
-  totalCores = Math.max(0, parseInt(document.getElementById('coreInput').value) || 0);
-  document.getElementById('totalVal').textContent = totalCores;
-  renderOrbs(); updateRollBtn();
-}
-
-function renderOrbs() {
-  document.getElementById('remainVal').textContent = Math.max(0, totalCores - usedCores);
-  const c = document.getElementById('coresDisplay'); c.innerHTML = '';
-  const show = Math.min(totalCores, 30);
-  for (let i = 0; i < show; i++) {
-    const o = document.createElement('div');
-    o.className = 'core-orb ' + (i < usedCores ? 'used' : 'avail');
-    o.textContent = i < usedCores ? '✓' : '◆';
-    c.appendChild(o);
+// upgrade check — is the activity track higher than current gear in that slot?
+function isUpgrade(item,track){
+  if(item.tier)return true; // always show tier tokens
+  const av=TVAL[track]||0;
+  if(item.slot==='Ring'){
+    const r1=TVAL[gear['Ring 1']||'none']||0,r2=TVAL[gear['Ring 2']||'none']||0;
+    return av>Math.min(r1,r2);
   }
-  if (totalCores > 30) {
-    const m = document.createElement('span');
-    m.style.cssText = 'font-size:0.75rem;color:var(--text-muted);align-self:center;margin-left:4px;';
-    m.textContent = `+${totalCores-30} more`; c.appendChild(m);
+  if(item.slot==='Trinket'){
+    const t1=TVAL[gear['Trinket 1']||'none']||0,t2=TVAL[gear['Trinket 2']||'none']||0;
+    return av>Math.min(t1,t2);
   }
+  const slotMap={Head:'Head',Neck:'Neck',Shoulder:'Shoulder',Back:'Back',Chest:'Chest',Wrist:'Wrist',Hands:'Hands',Waist:'Waist',Legs:'Legs',Feet:'Feet',Ring:'Ring 1',Weapon:'Main Hand','Off-Hand':'Off Hand'};
+  const gs=slotMap[item.slot];
+  if(!gs)return true;
+  return av>(TVAL[gear[gs]||'none']||0);
 }
 
-function updateRollBtn() {
-  const btn = document.getElementById('rollBtn');
-  if (!selectedActivity) { btn.disabled = true; return; }
-  const actDef = Object.values(ACTIVITY_GROUPS).flat().find(a => a.key === selectedActivity);
-  btn.disabled = (totalCores - usedCores) < (actDef ? actDef.cost : 1);
+// ═══════════════════════════════════════════════════════
+// STEP 3 — ACTIVITIES
+// ═══════════════════════════════════════════════════════
+const ATAB={raid:'ar',mp:'am',delve:'ad',prey:'ap'};
+let mpBracket='Mythic 0';
+function actGroup(g){
+  document.querySelectorAll('.atab').forEach(t=>t.className='atab'+(t.dataset.g===g?' '+ATAB[g]:''));
+  const p=document.getElementById('apanel');
+  if(g==='raid')buildRaidPanel(p);
+  else if(g==='mp')buildMpPanel(p);
+  else buildSimplePanel(p,g);
 }
-
-document.getElementById('coreInput').addEventListener('input', updateAll);
-
-// ── Activity tabs ─────────────────────────────────────────────────
-function switchGroup(group) {
-  activeGroup = group;
-  document.querySelectorAll('.act-tab').forEach(t => {
-    t.className = 'act-tab' + (t.dataset.group === group ? ' '+TAB_ACTIVE[group] : '');
+function buildMpPanel(p){
+  p.innerHTML='';
+  // bracket selector (like difficulty)
+  const dr=document.createElement('div');dr.className='drow';
+  MP_BRACKETS.forEach(b=>{
+    const btn=document.createElement('button');
+    const cls={champion:'dn',hero:'dh',myth:'dm'}[b.track]||'dn';
+    btn.className='dbtn'+(mpBracket===b.key?' '+cls:'');
+    btn.textContent=b.label;
+    btn.addEventListener('click',()=>{mpBracket=b.key;buildMpPanel(p);rebuildPools();});
+    dr.appendChild(btn);
   });
-  const panel = document.getElementById('actPanel'); panel.innerHTML = '';
-  const grid = document.createElement('div'); grid.className = 'content-grid'; panel.appendChild(grid);
-  ACTIVITY_GROUPS[group].forEach(act => {
-    const card = document.createElement('div');
-    card.className = 'content-card ' + act.cardClass;
-    if (selectedActivity === act.key) card.classList.add('selected');
-    card.innerHTML = `<span class="ccost">${act.cost} core${act.cost>1?'s':''}</span><div class="cname">${act.label}</div><div class="cdetail">${act.detail}</div><span class="track-badge ${act.track}">${act.trackLabel}</span>`;
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      selectedActivity = act.key;
-      renderLootPool(act.key);
-      updateRollBtn();
+  p.appendChild(dr);
+  // dungeon cards
+  const lbl=document.createElement('div');lbl.className='rlabel';lbl.textContent='Select dungeons';p.appendChild(lbl);
+  const gr=document.createElement('div');gr.className='bgrid';p.appendChild(gr);
+  DUNGEONS.forEach(dng=>{
+    const ak=`dungeon:${dng.name}|${mpBracket}`;
+    const c=document.createElement('div');c.className='bcard'+(selActs.has(ak)?' on':'');
+    const trackLabel={champion:'Champion','hero':'Hero',myth:'Myth'}[MP_BRACKETS.find(b=>b.key===mpBracket)?.track]||'';
+    c.innerHTML=`<span class="bcheck">✓</span><span class="bcost">1 core</span><div class="bnum">Dungeon ${dng.num}</div><div class="bnm">${dng.name}</div><div class="bilvl">${trackLabel} vault</div>`;
+    c.addEventListener('click',()=>{
+      selActs.has(ak)?selActs.delete(ak):selActs.add(ak);
+      c.classList.toggle('on',selActs.has(ak));
+      rebuildPools();
     });
-    grid.appendChild(card);
+    gr.appendChild(c);
   });
 }
-
-// ── Loot pool ─────────────────────────────────────────────────────
-function renderLootPool(actKey) {
-  const pool = document.getElementById('lootPool');
-  document.getElementById('poolTitle').textContent = actKey + ' — loot pool';
-  const items = LOOT[actKey] || [];
-  const obtainedItems = obtained[actKey] || [];
-  const visible = items.filter(i => itemMatchesChar(i));
-  const hidden = items.length - visible.length;
-
-  const badge = document.getElementById('obtainedBadge');
-  const filtBadge = document.getElementById('filteredBadge');
-  const obtCount = obtainedItems.filter(n => visible.some(i => i.name===n)).length;
-  obtCount > 0 ? (badge.textContent = obtCount+' obtained', badge.style.display='inline') : (badge.style.display='none');
-  (hidden > 0 && selectedClass) ? (filtBadge.textContent = hidden+' filtered out', filtBadge.style.display='inline') : (filtBadge.style.display='none');
-
-  if (!visible.length) { pool.innerHTML = '<div class="loot-pool-empty">No items match your loot spec for this activity.</div>'; return; }
-  pool.innerHTML = '';
-  visible.forEach(item => {
-    const isObtained = obtainedItems.includes(item.name);
-    const row = document.createElement('div'); row.className = 'item-row';
-    const armorTag = item.armor !== 'any' ? `<span class="armor-tag">${item.armor}</span>` : '';
-    row.innerHTML = `<span class="item-slot ${slotClass(item.slot)}">${item.slot}</span><span class="item-name${isObtained?' obtained-name':''}">${item.name}</span>${armorTag}${item.priority&&!isObtained?'<span class="item-status status-priority">priority</span>':''}${isObtained?'<span class="item-status status-obtained">obtained</span>':''}`;
-    if (!isObtained) row.addEventListener('click', () => {
-      if (!obtained[actKey]) obtained[actKey] = [];
-      if (!obtained[actKey].includes(item.name)) { obtained[actKey].push(item.name); renderLootPool(actKey); }
+function buildRaidPanel(p){
+  p.innerHTML='';
+  const dr=document.createElement('div');dr.className='drow';
+  RAID_DIFFS.forEach(d=>{
+    const b=document.createElement('button');b.className='dbtn'+(diff===d.key?' d'+d.key[0]:'');
+    b.textContent=d.label;
+    b.addEventListener('click',()=>{diff=d.key;buildRaidPanel(p);rebuildPools();});
+    dr.appendChild(b);
+  });
+  p.appendChild(dr);
+  const raids=[...new Set(BOSSES.map(b=>b.raid))];
+  raids.forEach(rn=>{
+    const l=document.createElement('div');l.className='rlabel';l.textContent=rn;p.appendChild(l);
+    const gr=document.createElement('div');gr.className='bgrid';p.appendChild(gr);
+    BOSSES.filter(b=>b.raid===rn).forEach(boss=>{
+      const ak=`boss:${boss.name}|${diff}`;
+      const c=document.createElement('div');c.className='bcard'+(selActs.has(ak)?' on':'');
+      c.innerHTML=`<span class="bcheck">✓</span><span class="bcost">2 cores</span><div class="bnum">Boss ${boss.num}</div><div class="bnm">${boss.name}</div><div class="bilvl">ilvl ${boss.ilvl[diff]}</div>`;
+      c.addEventListener('click',()=>{
+        selActs.has(ak)?selActs.delete(ak):selActs.add(ak);
+        c.classList.toggle('on',selActs.has(ak));
+        rebuildPools();
+      });
+      gr.appendChild(c);
     });
-    pool.appendChild(row);
+  });
+}
+function buildSimplePanel(p,g){
+  p.innerHTML='';
+  if(g==='mp'){const n=document.createElement('div');n.className='pnote';n.textContent='Completion chest pulls from the combined loot pool of all dungeons in the rotation.';p.appendChild(n);}
+  const gr=document.createElement('div');gr.className='ccgrid';p.appendChild(gr);
+  const cc={mp:'mp',delve:'dl',prey:'pr'};
+  const tb={champion:'tc',hero:'th',myth:'tm',veteran:'tv'};
+  ACT_GROUPS[g].forEach(a=>{
+    const c=document.createElement('div');c.className=`cccard ${cc[g]}`+(selActs.has(a.key)?' on':'');
+    c.innerHTML=`<span class="cccost">${a.cost} core${a.cost>1?'s':''}</span><div class="ccnm">${a.label}</div><div class="ccdet">${a.det}</div><span class="tbadge ${tb[a.track]||''}">${a.tl}</span>`;
+    c.addEventListener('click',()=>{
+      selActs.has(a.key)?selActs.delete(a.key):selActs.add(a.key);
+      c.classList.toggle('on',selActs.has(a.key));
+      rebuildPools();
+    });
+    gr.appendChild(c);
   });
 }
 
-// ── Spend & history ───────────────────────────────────────────────
-function spendCore() {
-  if (!selectedActivity) return;
-  const actDef = Object.values(ACTIVITY_GROUPS).flat().find(a => a.key === selectedActivity);
-  const cost = actDef ? actDef.cost : 1;
-  if (totalCores - usedCores < cost) return;
-  usedCores += cost;
-  rolls.push({activity: selectedActivity, cost});
-  renderOrbs(); updateRollBtn(); renderHistory();
+// ═══════════════════════════════════════════════════════
+// POOLS
+// ═══════════════════════════════════════════════════════
+function getActMeta(ak){
+  if(ak.startsWith('boss:')){
+    const[bn,d]=ak.split('boss:')[1].split('|');
+    const di=RAID_DIFFS.find(x=>x.key===d)||RAID_DIFFS[1];
+    const raw=BOSS_LOOT[bn]||[];
+    return{label:`${bn} (${d[0].toUpperCase()+d.slice(1)})`,track:di.track,cost:2,items:sortItems(raw)};
+  }
+  if(ak.startsWith('dungeon:')){
+    const[dn,bracket]=ak.split('dungeon:')[1].split('|');
+    const br=MP_BRACKETS.find(b=>b.key===bracket)||MP_BRACKETS[0];
+    const raw=NR_LOOT[dn]||[];
+    return{label:`${dn} (${bracket})`,track:br.track,cost:1,items:sortItems(raw)};
+  }
+  const a=Object.values(ACT_GROUPS).flat().find(x=>x.key===ak);
+  return{label:ak,track:a?a.track:'champion',cost:a?a.cost:1,items:sortItems(NR_LOOT[ak]||[])};
+}
+function sortItems(items){
+  return [...items.filter(i=>i.slot==='Trinket'),...items.filter(i=>i.slot!=='Trinket')];
+}
+function slotCls(s){
+  if(s==='Trinket')return'st';if(s==='Ring')return'sr';if(s==='Weapon')return'sw';
+  if(s==='Neck')return'sn';if(s==='Back')return'sb2';
+  if(['Head','Chest','Shoulder','Hands','Legs','Feet','Waist','Wrist','Tier Token'].includes(s))return'sa';
+  return'sd';
+}
+const TB={champion:'tc',hero:'th',myth:'tm',veteran:'tv'};
+
+function rebuildPools(){
+  // snapshot which pools are currently open so we can restore after rebuild
+  const openPools=new Set();
+  document.querySelectorAll('.pool').forEach(p=>{
+    const body=p.querySelector('.pool-body');
+    if(body&&body.style.display!=='none'){
+      const title=p.querySelector('.pool-title');
+      if(title)openPools.add(title.textContent);
+    }
+  });
+
+  const con=document.getElementById('pools');con.innerHTML='';
+  selActs.forEach(ak=>{
+    const m=getActMeta(ak);
+    const vis=m.items.filter(i=>itemOk(i));
+    if(!vis.length)return;
+    const r=rolled[ak]||new Set();
+    const b=banished[ak]||new Set();
+    const ups=vis.filter(i=>!r.has(i.name)&&!b.has(i.name)&&isUpgrade(i,m.track));
+    const rolledCount=[...r].filter(n=>vis.some(i=>i.name===n)).length;
+    const banishedCount=[...b].filter(n=>vis.some(i=>i.name===n)).length;
+
+    // restore open state if this pool was open before the rebuild
+    const isOpen=openPools.has(m.label);
+    const div=document.createElement('div');div.className='pool';
+    div.innerHTML=`<div class="pool-hdr" onclick="togglePool(this)">
+      <span class="chevron">${isOpen?'▼':'▶'}</span>
+      <span class="pool-title">${m.label}</span>
+      <span class="tbadge ${TB[m.track]||''}" style="padding:2px 8px;border-radius:99px;font-size:.63rem;font-weight:600">${m.track[0].toUpperCase()+m.track.slice(1)}</span>
+      <span class="pool-upgrades">${ups.length} possible upgrade${ups.length!==1?'s':''}</span>
+      ${rolledCount?`<span class="pool-rolled">${rolledCount} rolled</span>`:''}
+      ${banishedCount?`<span class="pool-banished">${banishedCount} banished</span>`:''}
+      <span class="pool-cost">${m.cost} core${m.cost>1?'s':''}</span>
+    </div><div class="pool-body" style="${isOpen?'':'display:none'}"></div>`;
+
+    const body=div.querySelector('.pool-body');
+    vis.forEach(item=>{
+      const isR=r.has(item.name);
+      const isB=b.has(item.name);
+      const up=!isR&&!isB&&isUpgrade(item,m.track);
+      const row=document.createElement('div');
+      row.className='irow'+(isR?' rolled':'')+(isB?' banished':'');
+      let tags='';
+      if(item.tier)    tags+=`<span class="itag it-tier">tier</span>`;
+      if(item.veryRare)tags+=`<span class="itag it-rare">very rare</span>`;
+      if(up)           tags+=`<span class="itag it-up">possible upgrade</span>`;
+      const rollActive=isR?'active':'';
+      const banActive=isB?'active':'';
+      const btns=`<span class="ibtns">
+        <button class="iact iact-roll ${rollActive}" title="${isR?'Unmark rolled':'Mark as rolled'}" onclick="toggleRolled(event,'${ak}','${item.name.replace(/'/g,"\\'")}')">✓</button>
+        <button class="iact iact-ban ${banActive}" title="${isB?'Unbanish':'Banish item'}" onclick="toggleBanished(event,'${ak}','${item.name.replace(/'/g,"\\'")}')">🚫</button>
+      </span>`;
+      row.innerHTML=`<span class="islot ${slotCls(item.slot)}">${item.slot}</span><span class="inm${isR?' rolled-nm':''}${isB?' ban-nm':''}">${item.name}</span>${tags}${btns}`;
+      body.appendChild(row);
+    });
+    con.appendChild(div);
+  });
+  buildRec();
 }
 
-function renderHistory() {
-  const wrap = document.getElementById('historyWrap'), list = document.getElementById('historyList');
-  if (!rolls.length) { wrap.style.display='none'; return; }
-  wrap.style.display = 'block'; list.innerHTML = '';
-  rolls.forEach((r,i) => {
-    const row = document.createElement('div'); row.className = 'history-row';
-    row.innerHTML = `<span class="history-idx">${i+1}.</span><span class="history-act">${r.activity}</span><span class="history-cost">${r.cost} core${r.cost>1?'s':''}</span>`;
-    list.appendChild(row);
+function togglePool(h){
+  const body=h.nextElementSibling;
+  const collapsed=body.style.display==='none';
+  body.style.display=collapsed?'':'none';
+  h.querySelector('.chevron').textContent=collapsed?'▼':'▶';
+}
+
+function toggleRolled(e,ak,name){
+  e.stopPropagation();
+  if(!rolled[ak])rolled[ak]=new Set();
+  rolled[ak].has(name)?rolled[ak].delete(name):rolled[ak].add(name);
+  // can't be both rolled and banished
+  if(rolled[ak].has(name)&&banished[ak]&&banished[ak].has(name))banished[ak].delete(name);
+  rebuildPools();buildRec();
+}
+
+function toggleBanished(e,ak,name){
+  e.stopPropagation();
+  if(!banished[ak])banished[ak]=new Set();
+  banished[ak].has(name)?banished[ak].delete(name):banished[ak].add(name);
+  // can't be both
+  if(banished[ak].has(name)&&rolled[ak]&&rolled[ak].has(name))rolled[ak].delete(name);
+  rebuildPools();buildRec();
+}
+
+// ═══════════════════════════════════════════════════════
+// RECOMMENDATION
+// ═══════════════════════════════════════════════════════
+function buildRec(){
+  const lst=document.getElementById('rlst');
+  if(!selActs.size){lst.innerHTML='<div class="rempty">Select activities above to see recommendations.</div>';return;}
+  const scored=[];
+  selActs.forEach(ak=>{
+    const m=getActMeta(ak);
+    const vis=m.items.filter(i=>itemOk(i));
+    const r=rolled[ak]||new Set();
+    const b=banished[ak]||new Set();
+    const ups=vis.filter(i=>{
+      if(r.has(i.name)||b.has(i.name))return false;
+      if(i.tier){
+        const gearSlot=i.slot==='Tier Token'?null:i.slot;
+        if(gearSlot&&TIER_SLOTS.has(gearSlot)&&tierHave[gearSlot])return false;
+      }
+      return isUpgrade(i,m.track);
+    });
+    if(!ups.length)return;
+    const tv=TVAL[m.track]||0;
+    const score=ups.reduce((s,i)=>s+tv*(i.slot==='Trinket'?1.5:1),0);
+    scored.push({ak,m,vis,ups,score});
+  });
+  scored.sort((a,b)=>b.score-a.score);
+  if(!scored.length){lst.innerHTML='<div class="rempty">No upgrades found — all items may be rolled on, banished, or your gear is at the highest available track.</div>';return;}
+  lst.innerHTML='';
+  scored.slice(0,5).forEach((s,i)=>{
+    const wrap=document.createElement('div');wrap.className='rec-wrap';
+
+    // header — click to collapse/expand the loot table
+    const hdr=document.createElement('div');hdr.className='ritem rec-hdr';
+    hdr.innerHTML=`
+      <div class="rrank${i===0?' gold':''}">${i===0?'★':(i+1)}</div>
+      <div class="rinfo">
+        <div class="rnm">${s.m.label}</div>
+        <div class="rdet">${s.ups.length} possible upgrade${s.ups.length!==1?'s':''}</div>
+      </div>
+      <span class="tbadge ${TB[s.m.track]||''}" style="padding:2px 8px;border-radius:99px;font-size:.63rem;font-weight:600">${s.m.track[0].toUpperCase()+s.m.track.slice(1)}</span>
+      <span class="rec-cost">${s.m.cost} core${s.m.cost>1?'s':''}</span>
+      <span class="chevron">▶</span>`;
+    wrap.appendChild(hdr);
+
+    // inline loot table — display only, no action buttons, collapsed by default
+    const tbl=document.createElement('div');tbl.className='rec-pool';tbl.style.display='none';
+    s.vis.forEach(item=>{
+      const up=isUpgrade(item,s.m.track);
+      const row=document.createElement('div');row.className='irow';
+      let tags='';
+      if(item.tier)    tags+=`<span class="itag it-tier">tier</span>`;
+      if(item.veryRare)tags+=`<span class="itag it-rare">very rare</span>`;
+      if(up)           tags+=`<span class="itag it-up">possible upgrade</span>`;
+      row.innerHTML=`<span class="islot ${slotCls(item.slot)}">${item.slot}</span><span class="inm">${item.name}</span>${tags}`;
+      tbl.appendChild(row);
+    });
+    hdr.style.cursor='pointer';
+    hdr.addEventListener('click',()=>{
+      const open=tbl.style.display!=='none';
+      tbl.style.display=open?'none':'';
+      hdr.querySelector('.chevron').textContent=open?'▶':'▼';
+      if(!open)hdr.classList.add('rec-hdr-open');
+      else hdr.classList.remove('rec-hdr-open');
+    });
+    wrap.appendChild(tbl);
+    lst.appendChild(wrap);
   });
 }
 
-function resetAll() {
-  usedCores=0; rolls=[]; obtained={}; selectedActivity=null; selectedClass=null; selectedSpec=null; activeGroup=null;
-  document.querySelectorAll('.class-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor=''; b.style.background=''; });
-  document.getElementById('specRow').innerHTML = '';
-  document.getElementById('charSummary').textContent = 'No class selected — loot pool will show all items.';
-  document.getElementById('actPanel').innerHTML = '';
-  document.querySelectorAll('.act-tab').forEach(t => t.className = 'act-tab');
-  document.getElementById('lootPool').innerHTML = '<div class="loot-pool-empty">← Pick an activity above to plan your roll</div>';
-  document.getElementById('poolTitle').textContent = 'Select an activity to see the loot pool';
-  document.getElementById('obtainedBadge').style.display = 'none';
-  document.getElementById('filteredBadge').style.display = 'none';
-  document.getElementById('historyWrap').style.display = 'none';
-  document.getElementById('rollBtn').disabled = true;
-  renderOrbs();
+// ═══════════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════════
+function resetAll(){
+  SC=null;SS=null;gear={};tierHave={};selActs=new Set();rolled={};banished={};diff='heroic';
+  document.querySelectorAll('.cbtn').forEach(b=>{b.classList.remove('on');b.style.borderColor='';b.style.background='';});
+  document.getElementById('srow').innerHTML='';
+  document.getElementById('csum').textContent='Select a class and spec to begin.';
+  document.getElementById('apanel').innerHTML='';
+  document.querySelectorAll('.atab:not(.atab-disabled)').forEach(t=>t.className='atab');
+  document.getElementById('pools').innerHTML='';
+  document.getElementById('rlst').innerHTML='<div class="rempty">Select activities above to see recommendations.</div>';
+  lock();buildGearGrid();
 }
 
-updateAll();
+// init
+lock();
+</script>
+</body>
+</html>
+
 </script>
 </body>
 </html>
