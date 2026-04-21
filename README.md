@@ -2,7 +2,7 @@
 
 A fan-made planning tool for **World of Warcraft: Midnight Season 1** to help you decide where to spend your **Nebulous Voidcore** bonus rolls.
 
-**Live site:** [thetaeleven.github.io/voidforge-planner](https://thetaeleven.github.io)
+**Live site:** [thetaeleven.github.io/voidforge-planner](https://thetaeleven.github.io/voidforge-planner)
 
 ---
 
