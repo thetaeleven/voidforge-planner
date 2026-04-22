@@ -154,6 +154,10 @@
     .iact:hover{border-color:var(--bdr-mid);color:var(--txt)}
     .iact-roll.active{background:rgba(60,191,144,.15);border-color:var(--teal);color:var(--teal)}
     .iact-ban.active{background:rgba(212,96,96,.15);border-color:var(--coral);color:var(--coral)}
+    .iact-bis.active{background:rgba(240,192,64,.15);border-color:var(--gold);color:var(--gold)}
+    .bis-row{background:rgba(240,192,64,.04)}
+    .pool-bis{font-size:.65rem;color:var(--gold);font-weight:600}
+    .it-bis{background:rgba(240,192,64,.15);color:var(--gold);border:1px solid rgba(240,192,64,.3)}
     /* disabled activity tabs */
     .atab-disabled{opacity:.35;cursor:not-allowed !important}
     /* tier checkbox */
@@ -279,7 +283,7 @@ const ITEM_IDS={
   // ── Voidspire Boss 3 ──
   'Volatile Void Suffuser':249341,'Wraps of Cosmic Madness':249340,
   'Ribbon of Coiled Malice':249337,"Tormentor's Bladed Fists":249298,
-  'Blade of the Final Twilight':249294,'Despotic Raiment':249308,
+  'Despotic Raiment':249308,
   // ── Voidspire Boss 4 ──
   'Gloom-Spattered Dreadscale':249339,"Vaelgor's Final Stare":249346,
   'Draconic Nullcape':249370,"Emblazoned Sunglaive":249280,
@@ -338,18 +342,16 @@ const ITEM_IDS={
   // ── Voidspire Boss 6 (additional) ──
   'Gaze of the Unrestrained':249329,"Canopy Walker's Footwraps":249382,
   "Nightblade's Pantaloons":249312,"Untethered Berserker's Grips":249325,
-  // ── Dreamrift tier token ──
-  'Alnwoven Riftbloom':249347,
   // ── Nexus-Point Xenas ──
   "Nysarra's Mantle":251213,'Leyline Leggings':251216,'Maledict Vest':251214,
   "Corewright's Zappers":251211,'Eclipse Espadrilles':251210,
   'Corewarden Cuffs':251209,'Greaves of the Divine Guile':251215,
   'Searing Spaulders':251212,"Kasreth's Bindings":251207,
   'Lightscarred Cuisses':251208,'Radiant Slicer':251219,'Dreadflail Bludgeon':251218,
-  'Corespark Multitool':251217,
-  'Heart of Wind':250256,"Latch's Crooked Hook":250227,"Kroluk's Warbanner":250227,
+  'Corespark Multitool':251201,
+  'Heart of Wind':250256,"Kroluk's Warbanner":250227,
   'Emberwing Feather':250144,'Pendant of Aching Grief':251096,'Warworn Cleaver':251088,
-  'Excavating Cudgel':251083,"Hurricane's Heart":251077,'Emberdawn Defender':251078,
+  'Excavating Cudgel':251083,"Roostwarden's Bough":251077,'Emberdawn Defender':251078,
   'Brambledawn Halo':251080,'Mantle of Dark Devotion':251085,"Commander's Faded Breeches":251090,
   "Fallen Grunt's Mantle":251092,'Vest of the Howling Gale':251099,
   'Snapvine Cinch':251082,'Legwraps of Lingering Legacies':251087,
@@ -357,37 +359,56 @@ const ITEM_IDS={
   'Grips of Forgotten Honor':251089,'Whipcoil Sabatons':251084,
   "Fletcher's Faded Faceplate":251098,'Riphook Defender':251086,
   'Sabatons of Furious Revenge':251091,'Embergrove Grasps':251081,
-  "Roostwarden's Bough":251077,
-  // ── Pit of Saron (classic Wrath item IDs) ──
-  'Barbed Ymirheim Choker':50228,'Purloined Wedding Ring':49812,
-  "Krick's Beetle Stabber":49807,"Surgeon's Needle":49808,
-  "Garfrost's Two-Ton Hammer":50235,'Rimebane Rifle':50233,
-  'Palebone Robes':50199,'Wristguards of Subterranean Moss':50205,
-  'Braid of Salt and Fire':50202,'Ice-Steeped Sandals':50200,
-  'Chewed Leather Wristguards':50206,"Flayer's Black Belt":50203,
-  'Shaggy Wyrmleather Leggings':50207,"Horns of the Spurned Val'kyr":50210,
-  "Spurned Val'kyr Shoulderguards":50213,'Scabrous Zombie Belt':50215,
-  'Black Dragonskin Breeches':50216,"Skeleton Lord's Cranium":50218,
-  'Shoulderplates of Frozen Blood':50219,'Frost Wyrm Ribcage':50220,
-  'Bent Gold Belt':50221,
+  // ── Pit of Saron ──
+  'Nevermelting Ice Crystal':50259,'Barbed Ymirheim Choker':50228,
+  'Purloined Wedding Ring':49812,'Cloak of the Fallen Cardinal':49823,
+  "Krick's Beetle Stabber":49807,"Surgeon's Needle":50227,
+  "Garfrost's Two-Ton Hammer":49802,'Rimebane Rifle':49813,
+  'Palebone Robes':49825,'Wristguards of Subterranean Moss':49809,
+  'Braid of Salt and Fire':50263,'Ice-Steeped Sandals':49805,
+  'Chewed Leather Wristguards':50264,"Flayer's Black Belt":49806,
+  'Shaggy Wyrmleather Leggings':49817,"Horns of the Spurned Val'kyr":49824,
+  "Spurned Val'kyr Shoulderguards":50233,'Scabrous Zombie Belt':49810,
+  'Black Dragonskin Breeches':49811,"Skeleton Lord's Cranium":49819,
+  'Shoulderplates of Frozen Blood':50234,'Frost Wyrm Ribcage':50272,
+  'Bent Gold Belt':49808,
   // ── Seat of the Triumvirate (Legion item IDs) ──
-  'Necklace of the Twisting Void':151309,'Void Stalker\'s Contract':151307,
+  'Necklace of the Twisting Void':151309,"Void Stalker's Contract":151307,
   'Ampoule of Pure Void':151306,"Echo of L'ura":151310,
   'Reality Breacher':151311,'Eredath Seal of Nobility':151308,
   'Band of the Triumvirate':151312,'Occlusion of Void':251217,
-  'Omission of Light':251093,
+  // cloth
+  "Shadow-Weaver's Crown":151337,"Viceroy's Umbral Mantle":151299,
+  'Voidbender Robe':151303,'Entropic Wristwraps':151305,
+  'Handwraps of the Ascended':151300,"Subjugator's Leggings":151304,
+  // leather — IDs confirmed from user
+  'Voidlashed Hood':151336,
+  'Bracers of Dark Binding':151315,'Gloves of the Dark Shroud':151318,
+  'Cinch of the Umbral Lasher':151316,'Shifting Stalker Hide Pants':151314,
+  'Footpads of Seeping Dread':151317,
+  'Spellboon Saber':193710,
+  // mail — IDs confirmed from user
+  'Pauldrons of the Void Hunter':151323,'Void-Linked Robe':151325,
+  'Darkfang Scale Wristguards':151321,'Waistguard of Bound Energy':151326,
+  'Leggings of Shifting Darkness':151338,
+  // plate — IDs confirmed from user
+  'Crown of the Dark Envoy':151333,'Pauldrons of the Broken':151331,
+  'Breastplate of the Dark Touch':151329,'Voidclaw Gauntlets':151332,
+  'Girdle of the Shadowguard':151327,'Trap Jammers':151330,
+  // weapons — IDs confirmed from user
+  'Scepter of the Endless Night':258525,'Grips of the Dark Viceroy':258524,
+  "Wand of Saprish's Gaze":258516,'Umbral Spire of Zuraal':258514,
   // ── Nexus-Point Xenas ──
-  'Whisper of the Duskwraith':251218,'Mark of Light':251219,
-  // ── Algeth'ar Academy (Dragonflight item IDs) ──
+  'Whisper of the Duskwraith':250253,
   "Algeth'ar Puzzle Box":193701,'Dragon Games Equipment':193719,
   "Emerald Coach's Whistle":193773,"Mystakria's Harvester":193717,
-  'Spellbane Cutlass':193711,"Algeth'ar Hedgecleaver":193715,
-  'Final Grade':193716,"Vexamus' Expulsion Rod":193713,
+  'Spellbane Cutlass':193711,
+  'Final Grade':193716,"Vexamus' Expulsion Rod":193709,
   // ── Maisara Caverns ──
   "Soulcatcher's Charm":250223,'Vessel of Tortured Souls':250258,
   'Rotting Globule':250224,'Shroud of the Soulhunter':251161,
   'Soulblight Cleaver':251175,'Ceremonial Hexblade':251173,
-  "Berserker's Hexclaws":251172,"Traitor's Talon":251171,
+  "Berserker's Hexclaws":251172,
   "Deceiver's Rotbow":251174,"Liferipper's Cutlass":251168,
   // ── Skyreach (Warlords item IDs) ──
   'Solarflare Prism':252420,'Solar Core Igniter':252418,'Radiant Sunstone':252411,
@@ -406,19 +427,43 @@ const ITEM_IDS={
   'Sharpeye Chestguard':258594,'Rigid Scale Boots':258596,
   'Gutcrusher Greathelm':258598,'Spaulders of Scorching Ray':258600,
   'Incarnadine Gauntlets':258602,
-  // ── Maisara Caverns armor ──
+  // ── Windrunner Spire (additional) ──
+  "Latch's Crooked Hook":250226,"Hurricane's Heart":251095,
+  // ── Nexus-Point Xenas (additional) ──
+  'Mark of Light':250241,'Omission of Light':251093,
+  // ── Algeth'ar Academy ──
+  'Platinum Star Band':193708,'Potion-Stained Cloak':193712,
+  'Experimental Safety Gloves':193713,'Frenzyroot Cuffs':193714,
+  "Ruby Contestant's Gloves":193721,'Scaled Commencement Spaulders':193704,
+  'Azure Belt of Competition':193722,'Boots of Explosive Growth':193715,
+  'Breastplate of Proven Knowledge':193705,"Venerated Professor's Greaves":193706,
+  // ── Maisara Caverns (additional) ──
+  "Traitor's Talon":251162,
   'Enthralled Bonespines':251171,"Falconer's Cinch":251166,
   "Reanimator's Weight":251176,'Decaying Cuirass':251164,
   'Wickedweave Trousers':251170,"Amalgamation's Harness":251177,
   "Trollhunter's Bands":251178,'Footwraps of Ill-Fate':251167,
   'Vilehex Bonds':251163,'Fetid Vilecrown':251165,'Nightprey Stalkers':251169,
-  "Bronze Challenger's Robe":251162,
+  "Bronze Challenger's Robe":193720,
   // ── Magisters' Terrace ──
   'Jelly Replicator':250242,'Eye of the Drowning Void':250257,'Refueling Orb':250246,
+  'Malfeasance Mallet':251100,
   'Bifurcation Band':251115,"Defiant Defender's Drape":260312,
   'Splitshroud Stinger':251111,'Shadowslash Slicer':251122,
   'Resolute Runeglaive':251106,'Whirling Voidcleaver':251117,
   'Ward of the Spellbreaker':251105,
+  // cloth
+  'Wraps of Umbral Descent':251120,'Wraps of Watchful Wrath':251108,
+  'Clasp of Compliance':251109,
+  // mail
+  'Vortex Visage':251119,"Sunlash's Sunsash":251110,
+  'Leggings of Orderly Conduct':251104,
+  // plate
+  "Arcane Guardian's Shell":251121,'Shadowsplit Girdle':251112,
+  'Legplates of Lingering Dusk':251118,'Oathsworn Stompers':251107,
+  // leather
+  'Spellsnap Shadowmask':251123,"Domanaar's Dire Treads":251124,
+  'Gloves of Viscous Goo':251125,'Custodial Cuffs':251126,
 };
 
 function itemLink(name){
@@ -1077,6 +1122,7 @@ let tierHave={};    // slot→bool (has tier token)
 let selActs=new Set();
 let rolled={};      // actKey→Set of item names
 let banished={};    // actKey→Set of item names
+let bis={};         // actKey→Set of item names (BIS marked)
 let diff='heroic';
 
 // ═══════════════════════════════════════════════════════
@@ -1361,9 +1407,11 @@ function rebuildPools(){
     if(!vis.length)return;
     const r=rolled[ak]||new Set();
     const b=banished[ak]||new Set();
+    const bset=bis[ak]||new Set();
     const ups=vis.filter(i=>!r.has(i.name)&&!b.has(i.name)&&isUpgrade(i,m.track));
     const rolledCount=[...r].filter(n=>vis.some(i=>i.name===n)).length;
     const banishedCount=[...b].filter(n=>vis.some(i=>i.name===n)).length;
+    const bisCount=[...bset].filter(n=>vis.some(i=>i.name===n)).length;
 
     // restore open state if this pool was open before the rebuild
     const isOpen=openPools.has(m.label);
@@ -1375,6 +1423,7 @@ function rebuildPools(){
       <span class="pool-upgrades">${ups.length} possible upgrade${ups.length!==1?'s':''}</span>
       ${rolledCount?`<span class="pool-rolled">${rolledCount} rolled</span>`:''}
       ${banishedCount?`<span class="pool-banished">${banishedCount} banished</span>`:''}
+      ${bisCount?`<span class="pool-bis">${bisCount} BIS</span>`:''}
       <span class="pool-cost">${m.cost} core${m.cost>1?'s':''}</span>
     </div><div class="pool-body" style="${isOpen?'':'display:none'}"></div>`;
 
@@ -1382,18 +1431,24 @@ function rebuildPools(){
     vis.forEach(item=>{
       const isR=r.has(item.name);
       const isB=b.has(item.name);
+      const isBis=bset.has(item.name);
       const up=!isR&&!isB&&isUpgrade(item,m.track);
       const row=document.createElement('div');
-      row.className='irow'+(isR?' rolled':'')+(isB?' banished':'');
+      row.className='irow'+(isR?' rolled':'')+(isB?' banished':'')+(isBis?' bis-row':'');
       let tags='';
       if(item.tier)    tags+=`<span class="itag it-tier">tier</span>`;
       if(item.veryRare)tags+=`<span class="itag it-rare">very rare</span>`;
-      if(up)           tags+=`<span class="itag it-up">possible upgrade</span>`;
+      if(isBis)        tags+=`<span class="itag it-bis">★ BIS</span>`;
+      else if(up)      tags+=`<span class="itag it-up">possible upgrade</span>`;
       const rollActive=isR?'active':'';
       const banActive=isB?'active':'';
+      const bisActive=isBis?'active':'';
+      const safeAk=ak.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const safeName=item.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       const btns=`<span class="ibtns">
-        <button class="iact iact-roll ${rollActive}" title="${isR?'Unmark rolled':'Mark as rolled'}" onclick="toggleRolled(event,'${ak}','${item.name.replace(/'/g,"\\'")}')">✓</button>
-        <button class="iact iact-ban ${banActive}" title="${isB?'Unbanish':'Banish item'}" onclick="toggleBanished(event,'${ak}','${item.name.replace(/'/g,"\\'")}')">🚫</button>
+        <button class="iact iact-bis ${bisActive}" data-ak="${ak.replace(/"/g,'&quot;')}" data-name="${item.name.replace(/"/g,'&quot;')}" data-action="bis" title="${isBis?'Unmark BIS':'Mark as BIS'}">★</button>
+        <button class="iact iact-roll ${rollActive}" data-ak="${ak.replace(/"/g,'&quot;')}" data-name="${item.name.replace(/"/g,'&quot;')}" data-action="roll" title="${isR?'Unmark rolled':'Mark as rolled'}">✓</button>
+        <button class="iact iact-ban ${banActive}" data-ak="${ak.replace(/"/g,'&quot;')}" data-name="${item.name.replace(/"/g,'&quot;')}" data-action="ban" title="${isB?'Unbanish':'Banish item'}">🚫</button>
       </span>`;
       row.innerHTML=`<span class="islot ${slotCls(item.slot)}">${item.slot}</span><span class="inm${isR?' rolled-nm':''}${isB?' ban-nm':''}">${itemLink(item.name)}</span>${tags}${btns}`;
       body.appendChild(row);
@@ -1411,23 +1466,31 @@ function togglePool(h){
   h.querySelector('.chevron').textContent=collapsed?'▼':'▶';
 }
 
-function toggleRolled(e,ak,name){
+// Single delegated handler for all BIS/roll/ban buttons
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('.iact[data-action]');
+  if(!btn)return;
   e.stopPropagation();
-  if(!rolled[ak])rolled[ak]=new Set();
-  rolled[ak].has(name)?rolled[ak].delete(name):rolled[ak].add(name);
-  // can't be both rolled and banished
-  if(rolled[ak].has(name)&&banished[ak]&&banished[ak].has(name))banished[ak].delete(name);
+  const ak=btn.dataset.ak;
+  const name=btn.dataset.name;
+  const action=btn.dataset.action;
+  if(!ak||!name)return;
+  if(action==='roll'){
+    if(!rolled[ak])rolled[ak]=new Set();
+    rolled[ak].has(name)?rolled[ak].delete(name):rolled[ak].add(name);
+    if(rolled[ak].has(name)&&banished[ak])banished[ak].delete(name);
+  } else if(action==='ban'){
+    if(!banished[ak])banished[ak]=new Set();
+    banished[ak].has(name)?banished[ak].delete(name):banished[ak].add(name);
+    if(banished[ak].has(name)&&rolled[ak])rolled[ak].delete(name);
+    if(banished[ak].has(name)&&bis[ak])bis[ak].delete(name);
+  } else if(action==='bis'){
+    if(!bis[ak])bis[ak]=new Set();
+    bis[ak].has(name)?bis[ak].delete(name):bis[ak].add(name);
+    if(bis[ak].has(name)&&banished[ak])banished[ak].delete(name);
+  }
   rebuildPools();buildRec();
-}
-
-function toggleBanished(e,ak,name){
-  e.stopPropagation();
-  if(!banished[ak])banished[ak]=new Set();
-  banished[ak].has(name)?banished[ak].delete(name):banished[ak].add(name);
-  // can't be both
-  if(banished[ak].has(name)&&rolled[ak]&&rolled[ak].has(name))rolled[ak].delete(name);
-  rebuildPools();buildRec();
-}
+});
 
 // ═══════════════════════════════════════════════════════
 // RECOMMENDATION
@@ -1451,7 +1514,15 @@ function buildRec(){
     });
     if(!ups.length)return;
     const tv=TVAL[m.track]||0;
-    const score=ups.reduce((s,i)=>s+tv*(i.slot==='Trinket'?1.5:1),0);
+    const bset=bis[ak]||new Set();
+    const score=ups.reduce((s,i)=>{
+      let w=1;
+      if(i.slot==='Trinket')w=2;
+      else if(i.slot==='Weapon')w=2;
+      else if(TIER_SLOTS.has(i.slot))w=1.5;
+      if(bset.has(i.name))w*=3;
+      return s+tv*w;
+    },0);
     scored.push({ak,m,vis,ups,score});
   });
   scored.sort((a,b)=>b.score-a.score);
@@ -1477,11 +1548,13 @@ function buildRec(){
     const tbl=document.createElement('div');tbl.className='rec-pool';tbl.style.display='none';
     s.vis.forEach(item=>{
       const up=isUpgrade(item,s.m.track);
-      const row=document.createElement('div');row.className='irow';
+      const isBis=(bis[s.ak]||new Set()).has(item.name);
+      const row=document.createElement('div');row.className='irow'+(isBis?' bis-row':'');
       let tags='';
       if(item.tier)    tags+=`<span class="itag it-tier">tier</span>`;
       if(item.veryRare)tags+=`<span class="itag it-rare">very rare</span>`;
-      if(up)           tags+=`<span class="itag it-up">possible upgrade</span>`;
+      if(isBis)        tags+=`<span class="itag it-bis">★ BIS</span>`;
+      else if(up)      tags+=`<span class="itag it-up">possible upgrade</span>`;
       row.innerHTML=`<span class="islot ${slotCls(item.slot)}">${item.slot}</span><span class="inm">${itemLink(item.name)}</span>${tags}`;
       tbl.appendChild(row);
     });
@@ -1503,7 +1576,7 @@ function buildRec(){
 // ═══════════════════════════════════════════════════════
 function resetAll(){
   SC=null;SS=null;gear={};tierHave={};gearConfirmed=false;
-  selActs=new Set();rolled={};banished={};diff='heroic';
+  selActs=new Set();rolled={};banished={};bis={};diff='heroic';
   document.querySelectorAll('.cbtn').forEach(b=>{b.classList.remove('on');b.style.borderColor='';b.style.background='';});
   document.getElementById('srow').innerHTML='';
   document.getElementById('csum').textContent='Select a class and spec to begin.';
@@ -1519,10 +1592,6 @@ function resetAll(){
 
 // init
 lock();
-</script>
-</body>
-</html>
-
 </script>
 </body>
 </html>
